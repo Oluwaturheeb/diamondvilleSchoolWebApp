@@ -1,4 +1,4 @@
-<div class="auth">
+<div class="auth col-12 mt-3 p-3">
 	<div class="auth-content">
 		<div id="login">
 			<h2>Login</h2>

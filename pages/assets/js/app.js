@@ -1,6 +1,12 @@
 $(document).ready(function () {
 	/* default js */
-	$('input').on({
+	$.ajaxSetup({
+		url: 'ajax',
+		dataType: 'json',
+		type: 'post'
+	});
+	
+	$('input, select, textarea').on({
         'mouseover': function(){
             $(this).prev('label').slideDown(500);
         },
@@ -15,71 +21,37 @@ $(document).ready(function () {
 
 		$('.info').empty();
 		$(".auth-content #" + id).show().siblings("div").hide();
-		console.log($("#" + id).siblings())
 	});
 
 	$(".auth form").submit(function (e) {
 		e.preventDefault();
-		
-		var rule = [
-			{
-				require: true,
-				email: true,
-				min: 10,
-				error: "Email is required!"
-			},
-			{
-				require: true,
-				min: 8,
-			},
-			{
-				require: true,
-				error: "Enter the captcha code"
-			}, {}, {}
-		]
 
 		var info = $('.info');
-		
-		v.form(this, rule);
+		v.autoForm(this);
 
-		if (!v.check()) {
+		if (v.check()) {
 			info.html(v.thrower()).css({'color': '#b28200', 'font-style': 'oblique'});
 		} else {
-			$.ajaxSetup({
-				url: 'ajax',
-				type: 'post',
-			});
-			
 			$.ajax({
-				data: $(this).serialize(),
+				data: v.auto,
 				beforeSend: () => {
 					info.html("Connecting to the server...");
 				},
 				success: e => {
 					info.empty();
-					if (e == 'ok') {
-						info.html('You are logged!').css({"color": "#36a509"});
-						$(this).children('#captcha').empty();
-						v.redirect();
-					} else {
-						var se = e.split(" ");
 
-						if (se.length == 2) {
-							if (se[0] == "ok") {
-								info.html('You are logged!').css({"color": "#36a509"});
-								$(this).children('#captcha').empty();
-								v.redirect(se[1]);
-							} else if (se[0] == 'change') {
-								$('.auth .info').empty();
-								$(".auth-content #chpwd").show().siblings().hide();
-								$('#chpwd .days').html("Its been <b>" + se[1] + "days</b> since you last change your password!");
-							} else if (se[0] == 'cap') {
-								$(this).children('#captcha').html(v.captcha(se[1]));
-							}
-						} else {
-							$(this).children('#captcha').empty();
-							info.html(e).css({'color': '#d80808', 'font-style': 'oblique'});
-						}
+					if (e.msg == 'ok') {
+						$(this).children('#captcha').empty();
+						info.html('You are logged!').css({"color": "#36a509"});
+						v.redirect(e.type);
+					} else if (e.msg == 'captcha') {
+						$(this).children('#captcha').html(e.captcha);
+					} else if (e.msg == "change") {
+						$('.auth .info').empty();
+						$(".auth-content #chpwd").show().siblings().hide();
+						$('#chpwd .days').html("Its been <b>" + e.days + "days</b> since you last change your password!");
+					} else {
+						info.html(e.msg).css({'color': '#d80808', 'font-style': 'oblique'});
 					}
 				}
 			});
@@ -100,32 +72,91 @@ $(document).ready(function () {
 			e.preventDefault();
 
 			$('#search, .links').toggle();
-			alert()
 		});
 		$('.dp-menu').click(() => {
 
 			if ($('.dp-menu').hasClass('active')) {
-				$('.dp-link').css({
-					'margin-left': '-50rem'
-				})
+				$('.dp-link').show();
+
 				$('.dp-menu').removeClass('active');
 				$('.container').css({
-					'margin-left': 0
+					'margin-left': '10rem'
+				});
+				$('footer').css({
+					'margin-left': '10rem'
 				});
 			} else {
-				$('.dp-link').css({
-					'margin-left': 0
-				})
+				$('.dp-link').hide();
+
 				$('.dp-menu').addClass('active')
-				$('.container').css({
-					'margin-left': '11rem'
+				$('.container, footer').css({
+					'margin-left': 'auto'
 				});
 			}
 		});
 		
 		$('.action form').submit(function (e) {
 			e.preventDefault();
-			
-			v.dError(this, true);
+			var info = $('.info');
+			v.autoForm(this);
+			if (v.check()) {
+				info.html(v.thrower());
+			} else {
+				v.withAuto()
+			}
 		});
+
+		$('.report form').change(function(e) {
+			e.preventDefault();
+
+			var info = $('.info');
+			v.autoForm(this);
+			if (v.check()) {
+				info.html(v.thrower());
+			} else {
+				v.withAuto();
+			}
+		});
+
+	// setting academy session
+	
+	$('.check2radio').change(() => {
+		v.autoForm('#session');
+
+		if (v.check()) {
+			alert(v.thrower());
+		} else {
+			v.withAuto();
+		}
+	});
+
+	$('.check2radio').click(function(e) {
+		$(this).addClass('active').children('input').prop('checked', true)
+		$(this).siblings('div').removeClass('active').children('input').prop('check', false);
+	});
+
+	$('a.edit').click(function(e) {
+		e.preventDefault();
+
+		var tt = $(this).attr("href").substring(1);
+		$('.action .' + tt).show().siblings().hide();
+	});
+
+	$('.classes').change(function(e) {
+		var val = $(this).val();
+
+		if (typeof val == 'string') {
+			if (val.substring(0, 3) == "Sss")
+				$(this).parent("div.form-group").next('div').css({display: 'block'});
+			else 
+				$(this).parent("div.form-group").next('div').css({display: 'none'});
+		} else {
+			val.forEach(e => {
+				if (e.substring(0, 3) == "Sss")
+					$(this).parent("div.form-group").next('div').css({display: 'block'});
+				else 
+					$(this).parent("div.form-group").next('div').css({display: 'none'});
+			});
+		}
+	});
 });

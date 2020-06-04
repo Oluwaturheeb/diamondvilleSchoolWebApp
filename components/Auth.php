@@ -14,8 +14,7 @@ class Auth extends Validate {
 		if (Config::get("auth/login_attempts") > 0) {
 			// if there is captcha in the request this validate the captcha
 			/*if(@$this->req()["captcha"]) {
-				echo "ffgg";
-				return $this->capt();
+				return ["captcha" => $this->capt()];
 			} else {*/
 				// if no captcha this init the captcha process
 				if (!Session::check("count")) {
@@ -28,7 +27,7 @@ class Auth extends Validate {
 							$cap = substr(Utils::gen(true), 0, 5);
 							Session::set("cap", $cap);
 						}
-						$this->addError("cap " .$cap);
+						$this->addError(["msg" => "captcha","captcha" => $cap]);
 					} else {
 						$c = Session::get("count");
 						$c ++;
@@ -43,15 +42,16 @@ class Auth extends Validate {
 	public function login ($cols = []) {
 		//check if there there is captcha
 		$d = $this->_e;
-		$id = ["id", "datediff(now(), last_pc) as days"];
+		$id = ["id"];
 		
-		if (!Config::get("login/last_pc")) 
-			$id = ["id"];
+		if (Config::get("auth/last_pc") > 0) 
+			$id[] = "datediff(now(), last_pc) as days";
 			
 		if (!Config::get("auth/single"))
-			$id = ["id", "type"];
+			$id[] = "type";
+			
+		$this->_log = $this->result = $d->fetch($id)->with("remove", ["type", "password"])->with("append", ["password"], [$this->hash(lcfirst($this->fetch("password")))])->exec(1);
 
-		$this->_log = $this->result = $d->fetch($id)->with("remove", ["type", "password"])->with("append", ["password"], [$this->hash($this->fetch("password"))])->exec(1);
 		if ($d->error()) {
 			$this->addError($d->error());
 		} else {
@@ -77,54 +77,57 @@ class Auth extends Validate {
 	
 	public function set ($ses = "user") {
 		if ($this->error()) {
-			return $this->error();
+			$msg = $this->error();
+			if (is_array($msg))
+				return $msg;
+			else
+				return ["msg" => $msg];
 		} else {
-			if($this->_log) 
+			if ($this->_log) {
 			//register
 				if (is_numeric($this->_log)) {
 					Session::set($ses, $this->_log);
-					return "ok";
+					$msg = "ok";
 				} else {
-				// login
+					// login
 					Session::set($ses, $this->_log->id);
-					if (Config::get("auth/last_pc")) {
-						if($this->_log->days > 30) {
-							return "change {$this->_log->days}";
-						} else {
-							if (Config::get("auth/single")) {
-								return "ok";
-							} else {
-								return $this->_log->type;
-							}
+					$msg = "ok";
+					if(!Config::get("auth/single"))
+						$type = $this->_log->type;
+					
+					// checking password change option
+					
+					if (Config::get("auth/last_pc") > 0)
+						if($this->_log->days > Config::get("auth/last_pc")) {
+							$msg = "change";
+							$days = $this->_log->days;
 						}
-					} else {
-						if (Config::get("auth/single")) {
-							return "ok";
-						} else {
-							return $this->_log->type;
-						}
-					}
+					return ["msg" => $msg, "days" => @$days, "type" => @$type];
 				}
+			}
 		}
 	}
 	
 	public function chpwd ($ses = "user") {
 		$d = $this->_e;
 		if($this->error()) {
-			echo $this->error();
+			if (is_array($this->_error()))
+				return $this->_error;
+			else
+				return ["msg" => $this->error()];
 		} else {
 			$this->validator($_POST, [
 				"password" => ["match" => "verify"]
 			]);
 
 			if ($this->error()) {
-				return $this->error();
+				return ["msg" => $this->error()];
 			} else {
 				$d->update([], Session::get("user"))->with("remove", ["type", "verify"])->with("append", ["last_pc"], ["now()"])->exec();
 				if ($d->error()) 
-					return $d->error();
+					return ["msg" => $d->error()];
 				else 
-					return "ok";
+					return ["msg" => "ok"];
 			}
 		}
 	}

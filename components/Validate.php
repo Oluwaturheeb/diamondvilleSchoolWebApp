@@ -77,7 +77,7 @@ class Validate {
 							break;
 						case "multiple":
 							if(!count(array_filter($src[$field]))){
-								$this->addError($field_name . $field_error);
+								$this->addError("{$field_name} is required!");
 							}
 					}
 				}
@@ -112,10 +112,12 @@ class Validate {
 			foreach ($this->req() as $key => $value) {
 				if ($key == "csrf") {
 					$rule = ["csrf" => true];
-				}/*  elseif ($key == "captcha") {
+				}  elseif ($key == "captcha") {
 					$rule = ["captcha" => true, "error" => "Captcha error!"];
-				}  */else {
+				}  else {
 					$rule = ["required" => true];
+					if (is_array($value))
+						$rule = ["multiple" => true];
 				}
 
 				if (!empty($rules[$i])) {

@@ -6,7 +6,7 @@ class Validate {
 		this.auto = '';
 	}
 
-	autoForm(f) {
+	autoForm (f) {
 		//initial f before manipulation so as to use it serialization
 		var fi = f;
 		if (typeof f === "object") {
@@ -97,6 +97,34 @@ class Validate {
 		} else {
 			this.auto = $(fi).serialize();
 		}
+	}
+	
+	withAuto (info = '.info', msg = {ok: "Success!"}, r = '') {
+		info = $(info);
+		var ppt = {
+			data: this.auto,
+			beforeSend: () => {
+				info.html('Connecting to the server...');
+			},
+			success: e => {
+				if (e.msg == 'ok') {
+					info.html(msg.ok).css({"color": "#36a509"});
+					this.redirect(r);
+				} else {
+					if (msg.err) {
+						info.html(msg.err).css({'color': '#d80808', 'font-style': 'oblique'});
+					} else {
+						info.html(e.msg).css({'color': '#d80808', 'font-style': 'oblique'});
+					}
+				}
+			},
+			error: e => {info.html(JSON.stringify(e)).css({'color': '#d80808', 'font-style': 'oblique'})}
+		}
+		$.ajax(ppt).done((e) => {
+			v.auto = e;
+			console.log(e);
+			return this;
+		});
 	}
 
 	form(id, rules) {
@@ -202,12 +230,24 @@ class Validate {
 		} else {
 			var i = this.getInput(handler);
 
-			if (i == null || i == undefined) {
-				return true;
-			} else if (i.trim().length == 0) {
-				return true;
+			if (typeof i == 'string') {
+				if (i == null || i == undefined) {
+					return true;
+				} else if (i.trim().length == 0) {
+					return true;
+				} else {
+					return false;
+				}
 			} else {
-				return false;
+				i.forEach( e => {
+					if (e == null || e == undefined) {
+						return true;
+					} else if (e.trim().length == 0) {
+						return true;
+					} else {
+						return false;
+					}
+				});
 			}
 		}
 	}
@@ -219,7 +259,7 @@ class Validate {
 			return true;
 		}
 	}
-
+	
 	redirect(loc = '') {
 		if (loc === '') {
 			setTimeout(() => {

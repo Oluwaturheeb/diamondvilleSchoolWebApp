@@ -6,9 +6,9 @@
 				<span></span>
 			</div>
 			<div class="dp-link">
-				<?php if(Session::check()):
+				<?php if (Session::check("level")):
 				$l = Session::get("level");
-				if($l <= 2) {
+				if($l <= 2 && !empty($l)) {
 					$acc = "Admin panel";
 					$loc = "admin";
 				} else {
@@ -19,18 +19,22 @@
 				<a href="<?php echo $loc ?>"><?php echo $acc ?></a>
 				<?php if ($l == 1): ?>
 				<!-- admin links -->
-				<a href="/add-student">Add student</a>
-				<a href="/add-teacher">Add teacher</a>
-				<a href="/set-session">Set session</a>
+				<a href="/teachers" class="edit">Teachers</a>
+				<a href="/add-teacher" class="edit">Add teacher</a>
+				<a href="/add-student" class="edit">Add student</a>
+				<a href="/add-subject" class="edit">Add subject</a>
+				<a href="/report" class="edit">Report</a>
+				<a href="/students" class="edit">Students</a>
 				<?php elseif ($l == 2): ?>
 				<!-- teacher link -->
-				<a href="/info">Account</a>
-				<a href="/add-student">Add student</a>
-				<a href="/report">Report</a>
-				<a href="/exams">Exam</a>
-				<?php else: ?>
+				<a href="/info" class="edit">Account</a>
+				<a href="/add-student" class="edit">Add student</a>
+				<a href="/exam" class="edit">Exam</a>
+				<a href="/report" class="edit">Report</a>
+				<a href="/students" class="edit">Students</a>
+				<?php elseif ($l == 3): ?>
 				<!-- student link -->
-				<a href="/report">Report</a>
+				<a href="/report" class="edit">Report</a>
 				<a href="/exams">Exam</a>
 				<?php endif; ?>
 				<a href="/logout">Logout</a>

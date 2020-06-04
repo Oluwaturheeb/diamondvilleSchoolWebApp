@@ -27,7 +27,6 @@ class Db {
 
 	public function query ($sql, $clauses = []) {
 		$this->_error = false;
-
 		if ($this->_query = $this->_pdo->prepare($sql)) {
 			if (@count($clauses)) {
 				$i = 1;
@@ -168,31 +167,21 @@ class Db {
 		return $this;
 	}
 
-	public function search ($cols, $to = array()) {
-		if (is_array($to)) {
-			/* Where clause */
+	public function find (...$where) {
+		if (!empty($where)) {
+			$form = $this->gen($this->form($where, true));
+			$w = str_replace("=", "like", $form[0]);
 
-			$field = $val = $col = "";
-
-			for ($i = 0, $j = 1; $i < count($to); $i++, $j++) {
-				$field .= "{$to[$i][0]} {$to[$i][1]} ?";
-				$val .= "%{$to[$i][2]}%";
-				if ($j <= count($cols)) {
-					$col .= $cols[$i];
-					if($j < count($cols)){
-						$col .= ", ";
-					}
-				}
-				if ($j < count($to)) {
-					$field .= " or ";
-					$val .= ",,,,, ";
-				}
+			function ff ($a) {
+				return "%{$a}%";
 			}
-			$sel = $col;
-			$this->_query_value = explode(",,,,, ", $val);
-			$this->_sql = "select {$sel} from {$this->_table} where {$field} {$limit}";
-			return $this;
+
+			$this->_query_value = array_map("ff", $form[1]);
+
+			$this->_sql .= " $w";
 		}
+
+		return $this;
 	}
 
 	public function concat ($join) {
@@ -442,7 +431,7 @@ class Db {
 				if($j < count($where)){
 					$value .= ", ";
 					if(is_array($concat)) {
-						$cc = $concat[$i];
+						$cc = @$concat[$i];
 					} else {
 						$cc = $concat;
 					}

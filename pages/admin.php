@@ -14,12 +14,27 @@ $e = new Easy();
 $ses = Session::get("level");
 $user = Session::get("user");
 
+
+// fetching subjects
+
 $e->table("subject");
 $sub = $e->fetch(["subject"])->exec();
 $sub = explode(", ", $sub[0]->subject);
 
+// getting the current session
+
+$e->table("event");
+$events = $e->fetch()->exec();
+foreach ($events as $key) {
+	if ($key->type == "session") {
+		$c_ses = $key->content;
+	}
+}
+
+// getting current user data
+
 $e->table("teacher");
-$r = $e->fetch(["concat(pre, '. ', first, ' ', last) as name", "class", "dept", "picture"], ["a_id", "=", $user])->exec(1);
+$r = $e->fetch(["concat(pre, '. ', first, ' ', last) as name", "class", "subject", "picture"], ["a_id", "=", $user])->exec(1);
 if ($ses == 2) 
 	Session::set("class", $r->class); 
 ?>
@@ -28,11 +43,16 @@ if ($ses == 2)
 					<img src="<?php echo $r->picture ?>" alt="<?php echo $r->name ?>" class="img-thumbnail">
 					<div>
 						<b><?php echo $r->name ?></b>
-						<i><?php echo $r->dept, " class" ?></i>
+						<i><?php echo $r->subject ?></i>
 						<small><i><?php echo $r->class ?></i></small>
 					</div>
 				</div>
-				<div class="mt-4"><i><?php echo Utils::time(); ?></i></div>
+				<div class="mt-4"><i><?php echo Utils::time(), " -- ", $c_ses; ?></i></div>
+				<div class="hidden">
+					<div class="col-sm-8 profile">
+						<span class="close">&times;</span>
+					</div>
+				</div>
 			</div>
 
 			<div class="col-12 col-sm-9 mt-3 p-3">
@@ -43,12 +63,12 @@ if ($ses == 2)
 					<div class="teachers">
 						<h2>Teachers</h2>
 						<?php
-						$td = $e->fetch(["concat(pre, '. ', first, ' ', last) as name", "class", "subject", "picture"], ["a_id", "!=", Session::get("user")])->exec();
+						$td = $e->fetch(["concat(pre, '. ', first, ' ', last) as name", "class", "subject", "picture", "a_id"], ["a_id", "!=", Session::get("user")])->exec();
 						foreach ($td as $t): ?>
 							<div class="header">
 								<img src="<?php echo $t->picture ?>" alt="<?php echo $t->name ?>" class="img-thumbnail">
 								<div>
-									<b><?php echo $t->name ?></b>
+									<a href="admin/<?php echo $t->a_id ?>" class="details"><b><?php echo $t->name ?></b></a>
 									<i><?php echo $t->subject ?></i>
 									<small><i><?php echo $t->class ?></i></small>
 								</div>
@@ -97,13 +117,13 @@ if ($ses == 2)
 						<h2>Students</h2>
 						<?php
 						$e->table("student");
-						$sd = $e->fetch(["concat(first, ' ', last) as name", "pin", "dept", "class", "age", "picture"])->exec();
+						$sd = $e->fetch(["concat(first, ' ', last) as name", "pin", "dept", "class", "age", "picture", "a_id"])->exec();
 
 						foreach ($sd as $s): ?>
 							<div class="header">
 								<img src="<?php echo $s->picture ?>" alt="<?php echo $s->name ?>" class="img-thumbnail">
 								<div>
-									<b><?php echo $s->name ?></b>
+									<a href="admin/<?php echo $s->a_id; ?>" class="details"><b><?php echo $s->name ?></b></a>
 									<i><?php echo $s->age, "yrs" ?></i>
 									<i><?php echo $s->class ?></i>
 									<i><?php echo $s->dept, " class" ?></i>
@@ -155,34 +175,44 @@ if ($ses == 2)
 					<!-- report -->
 					<div class="report">
 						<h2>Report</h2>
-						<?php
-						echo $td->class;
-
-
-						?>
+						
 					</div>
 
 					<!-- exam -->
 					<div class="exam">
 						<h2>Exam</h2>
-						<div class="h2 my-3">Set exam</div>
 						<p class="note text-left mb-3">
-						<small>Note: If there is already a subject saved, any question set will be an update to the subject!</small>
+						<small>Note: If there is already a question saved, any question set will be an update to the subject!</small>
 						</p>
-						<div class="form-group set">
-							<input type="number" id="set" class="form-control" placeholder="Enter number...">
-						</div>
-						<div class="form-group select">
-							<select name="subject" class="form-control" id="exam-sub">
-								<option value="">Select subject</option>
-								<!-- <?php foreach($sub as $r): ?>
-									<option><?php echo $r->name; ?></option>
-								<?php endforeach; ?> -->
-							</select>
-							<div class="subject-info"></div>
-						</div>
-						<form method="post" id="" class="form-question mt-4">
-							
+						<form method="post" id="" class="mt-4">
+							<div class="form-group select">
+								<label>Class</label>
+								<select name="class" class="form-control input-line" id="exam-sub">
+									<option value="">Select class</option>
+									<?php foreach(explode(", ", $r->class) as $c): ?>
+										<option><?php echo $c; ?></option>
+									<?php endforeach; ?>
+								</select>
+								<div class="subject-info"></div>
+							</div>
+							<div class="form-group select">
+								<label>Subject</label>
+								<select name="subject" class="form-control input-line" id="exam-sub">
+									<option value="">Select subject</option>
+									<?php foreach(explode(", ", $r->subject) as $s): ?>
+										<option><?php echo $s; ?></option>
+									<?php endforeach; ?>
+								</select>
+								<div class="subject-info"></div>
+							</div>
+							<div class="form-group set">
+								<label>Total question</label>
+								<input type="number" id="set" class="form-control input-line" placeholder="Enter number...">
+							</div>
+							<div>
+								<input type="hidden" name="type" value="exam">
+							</div>
+							<div class="form-question form-group"></div>
 						</form>
 					</div>
 
@@ -350,23 +380,66 @@ if ($ses == 2)
 			</div>
 
 			<!-- Other side  -->
+			<?php if ($ses == 1): ?>
 			<div class="col-12 col-sm-3 mt-3 p-3 bl">
-				<form method="post" action="ajax.php" id="session">
+				<div>
+					<h3>Active events</h3>
+					<?php foreach ($events as $key): ?>
+						<div class="active">
+							<b><?php echo ucfirst($key->type); ?></b>
+							<br>
+							<small><?php echo ucfirst($key->content); ?></small>
+							<div class="close delete-event" id="<?php echo $key->id; ?>">&times;</div>
+							<hr>
+						</div>
+					<?php endforeach; ?>
+				</div>
+				<form method="post" action="ajax" id="session">
 					<h3>Acadamic session</h3>
 					<div class="form-group check2radio">
-						<input type="checkbox" name="session" value="first term">
+						<input type="checkbox" name="content" value="First term">
 						First term
 					</div>
 					<div class="form-group check2radio">
-						<input type="checkbox" name="session" value="second term">
+						<input type="checkbox" name="content" value="Second term">
 						Second term
 					</div>
 					<div class="form-group check2radio">
-						<input type="checkbox" name="session" value="third term">
+						<input type="checkbox" name="content" value="Third term">
 						Third term
 					</div>
+					<div>
+						<div class="info"></div>
+						<input type="hidden" name="type" value="session">
+					</div>
+				</form>
+				<hr>
+				<form method="post" action="ajax">
+					<h3>Exam</h3>
+					<div class="form-group check2radio">
+						<input type="checkbox" name="content" value="Yes">
+						Exam begins
+					</div>
+					<div>
+						<div class="info"></div>
+						<input type="hidden" name="type" value="exams">
+					</div>
+				</form>
+				<hr>
+				<form method="post" action="ajax">
+					<h3>Results</h3>
+					<div class="form-group check2radio">
+						<input type="checkbox" name="content" value="Yes">
+						Release results
+					</div>
+					<div>
+						<div class="info"></div>
+						<input type="hidden" name="type" value="result">
+					</div>
+
 				</form>
 			</div>
+			<?php endif; ?>
 			
 <?php
 require_once "inc/footer.php";

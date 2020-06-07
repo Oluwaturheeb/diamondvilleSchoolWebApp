@@ -107,6 +107,7 @@ class Validate {
 				info.html('Connecting to the server...');
 			},
 			success: e => {
+				this.dError(e, true);
 				if (e.msg == 'ok') {
 					info.html(msg.ok).css({"color": "#36a509"});
 					this.redirect(r);

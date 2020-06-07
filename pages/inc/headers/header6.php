@@ -35,7 +35,7 @@
 				<?php elseif ($l == 3): ?>
 				<!-- student link -->
 				<a href="/report" class="edit">Report</a>
-				<a href="/exams">Exam</a>
+				<a href="/exam">Exam</a>
 				<?php endif; ?>
 				<a href="/logout">Logout</a>
 				<?php else: ?>

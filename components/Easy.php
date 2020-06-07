@@ -1,4 +1,5 @@
 <?php
+#namespace Easy;
 
 class Easy extends Db {
 	protected $_method, $_col = [], $_inp = [], $_v, $_val, $_pages;
@@ -18,10 +19,24 @@ class Easy extends Db {
 
 	*/
 
+	public function unique ($col) {
+		$this->_error = null;
+		if (is_array($col)) {
+			$this->get(["id"])->where([$col[0], $this->_v->req($col[0])], [$col[1], $this->_v->req($col[1])])->res();
+		} else {
+			$this->get(["id"])->where([$col, $this->_v->req($col)])->res();
+		}
+
+		if ($this->count()) 
+			return true;
+		
+		return false;
+	}
+
 	public function create () {
 		$v = $this->_v;
 		list($this->_col, $this->_inp) = $v->val_req();
-		if ($v->pass()){
+		if (!$v->pass()){
 			$this->_error = $v->error();
 		} else {
 			$this->add($this->_col, $this->_inp);
@@ -83,6 +98,10 @@ class Easy extends Db {
 			
 			if (count($where)) {
 				$this->_col = $this->_inp = [];
+				if(!is_array(end($where)) && !is_numeric($where)) {
+					$this->concat(end($where));
+					array_pop($where);
+				}
 				foreach ($where as $k => $v) {
 					$this->_col[] = $v[0];
 					if (count($v) == 2) {
@@ -90,10 +109,6 @@ class Easy extends Db {
 					} elseif (count($v) > 2) {
 						$this->_inp[] = $v[2];
 					}
-				}
-				if(!is_array(end($where)) && !is_numeric($where)) {
-					$d->concat(end($where));
-					array_pop($where);
 				}
 				$this->where($where, true);
 				$this->_misc = $where;

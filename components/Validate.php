@@ -91,13 +91,21 @@ class Validate {
 
 	/* http request handler */
 	
-	public static function req () {
+	public static function req ($r = "") {
 		if (!empty($_POST)) {
 			$req = $_POST;
 		} elseif (!empty($_GET)) {
 			$req = $_GET;
 		} else {
 			return false;
+		}
+
+		if ($r) {
+			if (@$req[$r]) {
+				$req = $req[$r];
+			} else {
+				$req = false;
+			}
 		}
 
 		return $req;

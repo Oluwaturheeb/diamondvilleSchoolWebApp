@@ -68,7 +68,7 @@ $(document).ready(function () {
 	
 	// nav control
 	
-	$('.search, span.close').click(function(e) {
+	$('.search, #search .close').click(function(e) {
 			e.preventDefault();
 
 			$('#search, .links').toggle();
@@ -137,22 +137,41 @@ $(document).ready(function () {
 
 	$('a.details').click(function (e) {
 		e.preventDefault();
-
-		var data = {"profile": $(this).attr('href').split("/")[1]};
-
+		var data = $(this).attr('href').split("/");
 		$.ajax({
-			data : data,
+			data : {profile: data[1], acc: data[0]},
 			beforeSend: () => {
 				$('.hidden').css({display: 'grid'});
 			}, 
 			success: e => {
 				if (e.msg == "ok") {
-					alert(e.payLoad);
+					$('.profile').append(e.payload);
 				} else {
 					alert(e.msg);
 				}
 			}
 		});
+	});
+
+	$('.delete-event').click(() => {
+		$.ajax({
+			data : {type: 'delete-event', id: $('.delete-event').attr('id')},
+			success: e => {
+				if (e.msg == "ok") {
+					alert("Event deleted!");
+					v.redirect();
+				} else {
+					alert(e.msg);
+				}
+			}
+		});
+	})
+
+	// closing the profile tab
+
+	$('.profile .close').click(() => {
+		$('.profile .close').next().removeClass("header").empty();
+		$('.hidden').hide();
 	});
 
 	$('a.edit').click(function(e) {

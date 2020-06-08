@@ -45,8 +45,9 @@ class Validate {
 								this.error = 'Kindly provide a valid email address!';
 							}
 						} else if (type == "checkbox") {
+							fname = "boxes";
 							if (this.checkBox() === false) {
-								this.error = "Select a value from " + fname + "!";
+								this.error = "Select a value from the " + fname + "!";
 							}
 						} else if (type == 'file') {
 							var min = inp.attr('min');

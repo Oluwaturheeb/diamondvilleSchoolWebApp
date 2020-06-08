@@ -92,7 +92,7 @@ if (@$a->req()['type'] == "add-subject") {
 if ($a->req("type") == "exam") {
 	$a->val_req();
 	if ($a->error()) {
-		echo $a->error();
+		response($a->error());
 	} else {
 		$e->table($a->req("type"));
 		$un = $e->unique(["subject", "class"]);
@@ -126,8 +126,81 @@ if ($a->req("type") == "exam") {
 	}
 }
 
-if ($a->req("profile")) {
+// submitting exam
 
+if ($a->req("type") == "exam-submit") {
+	$d->table("exam");
+
+	// getting all available sessions
+	$cls = Session::get("class");
+	$sub = Session::get("subject");
+	$ses = Session::get("session");
+	$user = Session::get("user");
+
+	// getting answer from db
+	$ans = $d->get(["answer"])
+	->where(["class", $cls], ["subject", $sub])
+	->res(1);
+	$ans = explode("___", $ans->answer);
+	$exam = $a->req("exam-ans");
+
+	// check against the supplied answer
+	$sc = count($ans) - count(array_diff_assoc($ans, $exam));
+	$sc .= " / " . count($ans);
+	
+	//getting student data from score table
+	$d->table("score");
+	$sq = $d->get(['data'])
+	->concat(["and", "and"])
+	->where(
+		["a_id", $user],
+		["session", $ses],
+	)
+	->res(1);
+
+	$data = ["subject" => $sub, "score" => $sc];
+
+	if ($d->count()) {
+		// this means update
+		$score = $u->djson($sq->data);
+		$score[] = $data;
+		$data = $u->json($score);
+		$d->set(["data"], [$data])
+		->where(
+			["a_id", $user],
+			["session", $ses],
+		)->res();
+	} else {
+		// this means creating a new data;
+		$data = $u->json([$data]);
+		$d->add(["data", "a_id", "subject", "session", "class"], [$data, $user, $sub, $ses, $cls])->res();
+	}
+
+	if (!$d->count()) {
+		response($d->error());
+	} else {
+		response();
+	}
+}
+
+if ($a->req("profile")) {
+	$e->table($a->req("acc"));
+
+	$r = $e->fetch()->with("remove", ['acc'])->with("change", ["a_id"])->exec(1);
+	$dob = explode(" ", $r->dob)[0];
+	$res = <<<__here
+	<div class="header">
+		<img src="$r->picture" alt="$r->first" class="img-thumbnail">
+		<div>
+			<b>$r->pre. $r->first $r->last</b>
+			<div>Someone@mail.com</div>
+			<div>$dob ($r->age)</div>
+			<div>$r->hadd</div>
+		</div>
+	</div>
+__here;
+
+	response(["msg" => "ok", "payload" => $res]);
 }
 
 // other side
@@ -146,5 +219,17 @@ if ($a->req("type") == "session" || $a->req("type") == "exams" || $a->req("type"
 		response($e->error());
 	} else {
 		response();
+	}
+}
+
+if ($a->req("type") == "delete-event") {
+	$e->table("event");
+
+	$e->del()->with("remove", ["type"])->exec();
+
+	if ($e->count()) {
+		response();
+	} else {
+		response($e->error());
 	}
 }

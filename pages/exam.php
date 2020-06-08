@@ -6,53 +6,48 @@ if (!Session::check("user"))
 
 $user = Session::get("user");
 $cls = Session::get("class");
+$sss = Session::get("session");
 
 $e = new Easy();
 $title = "Exam center";
 require_once "inc/header.php";
 
 $e->table("event");
-$echeck = $e->fetch(["id", "content", "type"], ["type", "exams"], ["type", "session"], "or")->exec();
+$echeck = $e->fetch(["id", "content", "type"], ["type", "exams"])->exec();
 
-if($e->count() == 2):
-	// getting the current session from event table
-	$sss = "";
-	foreach($echeck as $key) {
-		if ($key->type == "session") {
-			$sss .= $key->content;
-		}
-	}
-
+if($e->count()):
 	$e->table("score");
 	// getting data from score if the student have sat for an exam b4
-	$data = $e->fetch(["data", "session"], ["a_id", $user], ["class", $cls])->exec(1);
-
+	$e->concat(["and", "and"]);
+	$data = $e->fetch(["data"], ["a_id", $user], ["class", $cls], ["session", $sss])->exec(1);
 	// getting exams from here
-
 	$e->table("exam");
 
 	if ($e->count() == 0) {
 		// if the student haven't done any exam at all
-		$data = $e->fetch(["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], ["class", "!=", "" /*Session::get("class")*/])->exec(1);
+		$data = $e->fetch(["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], ["class", $cls])
+		->exec(1);
 	} else {
 		// if the student have sat for an exam b4
 		$to = [];
 		$sub = [];
 
-		foreach ($data as $sub) {
-			foreach ($sub as $key => $val) {
-				if($val == 0) {
-					array_push($to, $key);
+		$data = Utils::djson($data->data);
+		foreach ($data as $key => $val) {
+			foreach ($val as $k => $v) {
+				if ($k == "subject") {
+					array_push($to, $v);
 					break;
 				}
 			}
 		}
 
 		foreach ($to as $val) {
-			$data = $e->fetch(["data", "subject"], ["class", "=", $cls], ["subject", "=", $val])->exec(1);
-			if($e->count()) {
+			$data = $e->fetch(["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], ["class", "=", $cls], ["subject", "!=", $val])->exec(1);
+			print_r($e);
+
+			if(!$e->count()) 
 				break;
-			}
 		}
 	}
 	if($data):
@@ -106,50 +101,62 @@ if($e->count() == 2):
 	$('.e-d span').html(d[0]);
 	$('.my-3 small').text('No ' + next +' of ' + count);
 	
-	$('.control-btn button').click(function(){
+	$('.control-btn button').click(function () {
 		var val = $('.option input:checkbox:checked').val();
 		if(!v.empty(val, true)){
+			// this empty the info if error
 			info.html('');
-			$('.option input:checkbox').prop('checked', false);
-			$('.option div').removeClass('active');
-		
+
+			// this updates the question and options
 			$('.e-question span').html(q[0 + next]);
 			$('.e-a span').html(a[0 + next]);
 			$('.e-b span').html(b[0 + next]);
 			$('.e-c span').html(c[0 + next]);
 			$('.e-d span').html(d[0 + next]);
 
-			
+			// this uncheck the last check box option
+			$('.option input:checkbox').prop('checked', false);
+			$('.option div').removeClass('active');
 
-			$('.my-3 small').text('No ' + next +' of ' + count);
-
-			if(arr.length != count){
+			// this insert all checked option into an array
+			if (arr.length != count) {
 				arr.push(val);
 			}
 
-			if(arr.length == count){
+			if (arr.length == count) {
 				$(this).html("Submit");
 				var con = confirm('You are about to submit!');
-				if(con){
+				if (con) {
 					$.ajax({
-						data: {'exam-ans': arr},
+						data: {'exam-ans': arr, type: 'exam-submit'},
+						dataType: 'json',
 						success: e => {
-							if(e == 'ok'){
+							if (e.msg == 'ok') {
 								info.html("Submitted");
 								v.redirect();
-							}else{
+							} else {
 								info.html(e);
 							}
+						},
+						error: e => {
+							info.html(e);
 						}
 					});
 				}
 			}
-		}else {
-			info.html('Select an answer!');
-		}
-		if(next != count){
+			if (next != count) {
 				next++;
 			}
+
+			$('.my-3 small').text('No ' + next +' of ' + count);
+			if (next == count)
+				$(this).html("Submit");
+		} else {
+			info.html('Select an answer!');
+		}
+
+		
+
 	});
 	
 	$('.exam .option div').click(function(){
@@ -165,6 +172,17 @@ if($e->count() == 2):
 		padding: 10px;
 		border-left: 3px solid var(--pry);
 		box-shadow: 1px 1px 2px var(--pry);
+	}
+
+	.e-question {
+		padding: 10px;
+		border-left: 3px solid var(--hover);
+		word-spacing: 5px;
+		box-shadow: 1px 1px 2px var(--hover);
+	}
+
+	.e-question::first-letter{
+		text-transform: capitalize;
 	}
 </style>
 <?php else: ?>

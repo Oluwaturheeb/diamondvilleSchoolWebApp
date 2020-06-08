@@ -8,16 +8,7 @@ if (Validate::req())
 	$data = $e->create();
 ?>
 <div class="col-12 mt-3 p-3">
-	<form method="post">
-		<div class="input-group">
-			<label>last</label>
-			<input class="input-line" name="last">
-		</div>
-		<div class="input-group">
-			<input type="hidden" name="a_id" value="1">
-			<button class="button">Submit</button>
-		</div>
-	</form>
+	
 </div>
 <style>
 .dp-link{

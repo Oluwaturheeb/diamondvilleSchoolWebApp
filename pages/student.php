@@ -19,6 +19,8 @@ $c_ses = $cc->content;
 $e->table("student");
 $r = $e->fetch(["concat(first, ' ', last) as name", "class", "picture", "pre"], ["a_id", "=", $user])
 ->exec(1);
+Session::set("session", $c_ses);
+Session::set("class", $r->class);
 ?>
 
 			<div class="col-12 mt-3">

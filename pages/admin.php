@@ -68,7 +68,7 @@ if ($ses == 2)
 							<div class="header">
 								<img src="<?php echo $t->picture ?>" alt="<?php echo $t->name ?>" class="img-thumbnail">
 								<div>
-									<a href="admin/<?php echo $t->a_id ?>" class="details"><b><?php echo $t->name ?></b></a>
+									<a href="teacher/<?php echo $t->a_id ?>" class="details"><b><?php echo $t->name ?></b></a>
 									<i><?php echo $t->subject ?></i>
 									<small><i><?php echo $t->class ?></i></small>
 								</div>
@@ -123,7 +123,7 @@ if ($ses == 2)
 							<div class="header">
 								<img src="<?php echo $s->picture ?>" alt="<?php echo $s->name ?>" class="img-thumbnail">
 								<div>
-									<a href="admin/<?php echo $s->a_id; ?>" class="details"><b><?php echo $s->name ?></b></a>
+									<a href="student/<?php echo $s->a_id; ?>" class="details"><b><?php echo $s->name ?></b></a>
 									<i><?php echo $s->age, "yrs" ?></i>
 									<i><?php echo $s->class ?></i>
 									<i><?php echo $s->dept, " class" ?></i>

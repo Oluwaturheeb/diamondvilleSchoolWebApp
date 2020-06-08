@@ -16,5 +16,9 @@
 	<?php
 	require_once "inc/headers/header6.php";
 ?>
+<div class="bg">
+	<h1>DiamondVille School</h1>
+	<i>High</i>
+</div>
 	<div class="container">
 		<div class="row">

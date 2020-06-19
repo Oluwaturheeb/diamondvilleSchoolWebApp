@@ -3,8 +3,11 @@ require_once "Autoload.php";
 
 if(!Session::check("user"))
 	Redirect::to("/login");
-else 
+else
 	$title = "Admin panel";
+	
+if (Session::get("user") > 2) 
+	Redirect::to("/student");
 
 require_once "inc/header.php";
 
@@ -37,7 +40,14 @@ $e->table("teacher");
 $r = $e->fetch(["concat(pre, '. ', first, ' ', last) as name", "class", "subject", "picture"], ["a_id", "=", $user])->exec(1);
 if ($ses == 2) 
 	Session::set("class", $r->class); 
+	Session::set("session", $c_ses);
 ?>
+
+			<div class="hidden">
+				<div class="col-12 col-sm-10 profile">
+					<span class="close">&times;</span>
+				</div>
+			</div>
 			<div class="col-12 mt-3">
 				<div class="header">
 					<img src="<?php echo $r->picture ?>" alt="<?php echo $r->name ?>" class="img-thumbnail">
@@ -48,11 +58,6 @@ if ($ses == 2)
 					</div>
 				</div>
 				<div class="mt-4"><i><?php echo Utils::time(), " -- ", $c_ses; ?></i></div>
-				<div class="hidden">
-					<div class="col-sm-8 profile">
-						<span class="close">&times;</span>
-					</div>
-				</div>
 			</div>
 
 			<div class="col-12 col-sm-9 mt-3 p-3">
@@ -66,7 +71,14 @@ if ($ses == 2)
 						$td = $e->fetch(["concat(pre, '. ', first, ' ', last) as name", "class", "subject", "picture", "a_id"], ["a_id", "!=", Session::get("user")])->exec();
 						foreach ($td as $t): ?>
 							<div class="header">
-								<img src="<?php echo $t->picture ?>" alt="<?php echo $t->name ?>" class="img-thumbnail">
+								<div class="image">
+									<img src="<?php echo $t->picture ?>" alt="<?php echo $t->name ?>" class="img-thumbnail">
+									<form method="post" enctype="multipart/form-data" id="change-pic">
+										<input type="file" name="img[]" class="uploader" id="file" capture="">
+										<input type="hidden" name="teacher" value="<?php echo $t->a_id; ?>">
+										<span>Edit...</span>
+									</form>
+								</div>
 								<div>
 									<a href="teacher/<?php echo $t->a_id ?>" class="details"><b><?php echo $t->name ?></b></a>
 									<i><?php echo $t->subject ?></i>
@@ -121,9 +133,16 @@ if ($ses == 2)
 
 						foreach ($sd as $s): ?>
 							<div class="header">
-								<img src="<?php echo $s->picture ?>" alt="<?php echo $s->name ?>" class="img-thumbnail">
+								<div class="image">
+									<img src="<?php echo $s->picture ?>" alt="<?php echo $s->name ?>" class="img-thumbnail">
+									<form method="post" enctype="multipart/form-data" id="change-pic">
+										<input type="file" name="img[]" class="uploader" id="file" capture="">
+										<input type="hidden" name="student" value="<?php echo $s->a_id; ?>">
+										<span>Edit...</span>
+									</form>
+								</div>
 								<div>
-									<a href="student/<?php echo $s->a_id; ?>" class="details"><b><?php echo $s->name ?></b></a>
+									<a href="student/<?php echo $s->a_id; ?>"><b><?php echo $s->name ?></b></a>
 									<i><?php echo $s->age, "yrs" ?></i>
 									<i><?php echo $s->class ?></i>
 									<i><?php echo $s->dept, " class" ?></i>
@@ -140,27 +159,29 @@ if ($ses == 2)
 						<form method="post" action="ajax">
 							<div class="form-group">
 								<label>Class</label>
-								<select name="class" id="class" class="form-control input-line">
+								<select name="class" id="class" class="form-control input-line classes">
 									<option value="">Select class</option>
-								<?php if ($r->class):
-									foreach (explode(",", $r->class) as $c):
-								?>
-									<option><?php echo $c ?></option>
-								<?php endforeach; ?>
-								<?php else: ?>
 									<option>Jss 1</option>
 									<option>Jss 2</option>
 									<option>Jss 3</option>
 									<option>Sss 1</option>
 									<option>Sss 2</option>
 									<option>Sss 3</option>
-								<?php endif; ?>
 								</select>
-								<div class="form-group" style="display: none;">
-									<input type="hidden" name="type" value="score">
-								</div>
-								<div class="info"></div>
 							</div>
+							<div class="form-group" style="display: none;">
+								<label for="dept">Department</label>
+								<select class="form-control input-line" name="dept" id="dept">
+									<option value="Junior">Junior</option>
+									<option>Art</option>
+									<option>commercial</option>
+									<option>Science</option>
+								</select>
+							</div>
+							<div class="form-group" style="display: none;">
+								<input type="hidden" name="type" value="score">
+							</div>
+							<div class="info"></div>
 						</form>
 						<div class="report-result"></div>
 					</div>
@@ -326,7 +347,7 @@ if ($ses == 2)
 							<div class="form-group" style="display: none;">
 								<label for="dept">Department</label>
 								<select class="form-control input-line" name="dept" id="dept">
-									<option value="Junior">Select department</option>
+									<option value="Junior">Junior</option>
 									<option>Art</option>
 									<option>commercial</option>
 									<option>Science</option>
@@ -354,24 +375,13 @@ if ($ses == 2)
 								<input name="email" type="email" id="email" placeholder="Enter email address" class="form-control input-line">
 							</div>
 							<div class="form-group">
+								<label for="phone">Phone</label>
+								<input name="phone" type="tel" id="phone" placeholder="Enter phone number..." class="form-control input-line">
+							</div>
+							<div class="form-group">
 								<input type="hidden" name="create" value="student">
 								<div class="info"></div>
 								<button class="button">Add!</button>
-							</div>
-						</form>
-
-
-						<form method="post" enctype="multipart/form-data" id="img">
-							<div class="h2 my-3">Upload picture</div>
-							<div class="form-group">
-								<div class="holder">
-									<input type="file" name="files[]" id="file" class="file-input student">
-									<span></span>
-								</div>
-							</div>
-							<div class="form-group">
-							 <div class="img-info"></div>
-								<button class="button">Upload</button>
 							</div>
 						</form>
 					</div>
@@ -380,6 +390,7 @@ if ($ses == 2)
 			</div>
 
 			<!-- Other side  -->
+
 			<?php if ($ses == 1): ?>
 			<div class="col-12 col-sm-3 mt-3 p-3 bl">
 				<div>

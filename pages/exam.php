@@ -1,57 +1,48 @@
 <?php
 require_once "Autoload.php";
-/*
+
 if (!Session::check("user"))
-	Redirect::to("/login");*/
+	Redirect::to("/login");
 
 $user = Session::get("user");
 $cls = Session::get("class");
 $sss = Session::get("session");
+$dept = Session::get("dept");
 
-$e = new Easy();
 $title = "Exam center";
 require_once "inc/header.php";
 
+$e = new Easy();
 $e->table("event");
 $echeck = $e->fetch(["id", "content", "type"], ["type", "exams"])->exec();
 
 if($e->count()):
-	$e->table("score");
-	// getting data from score if the student have sat for an exam b4
+	// getting data from attendance if the student have sat for an exam b4 for the given session
+	$e->table("attendance");
 	$e->concat(["and", "and"]);
-	$data = $e->fetch(["data"], ["a_id", $user], ["class", $cls], ["session", $sss])->exec(1);
-	// getting exams from here
+	$data = $e->fetch(["subject"], ["a_id", $user], ["session", $sss], ["sit", 0])->exec(1);
+
 	$e->table("exam");
-
-	if ($e->count() == 0) {
-		// if the student haven't done any exam at all
-		$data = $e->fetch(["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], ["class", $cls])
-		->exec(1);
+	if ($e->count()) {
+		// if yes get the next exam on the list
+		$subject = $data->subject;
+		$e->fetch(
+			["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], 
+			["class", $cls],
+			["subject", $subject]
+		);
 	} else {
-		// if the student have sat for an exam b4
-		$to = [];
-		$sub = [];
-
-		$data = Utils::djson($data->data);
-		foreach ($data as $key => $val) {
-			foreach ($val as $k => $v) {
-				if ($k == "subject") {
-					array_push($to, $v);
-					break;
-				}
-			}
-		}
-
-		foreach ($to as $val) {
-			$data = $e->fetch(["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], ["class", "=", $cls], ["subject", "!=", $val])->exec(1);
-			print_r($e);
-
-			if(!$e->count()) 
-				break;
-		}
+		// if not then get the first exam from the database;
+		$e->fetch(
+			["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], 
+			["class", $cls]
+		);
 	}
-	if($data):
+	
+	$data = $e->exec(1);
 
+	if($data):
+  
 	$r = $data;
 	Session::set("subject", $r->subject);
 	$q = explode("___", $r->question);
@@ -138,7 +129,7 @@ if($e->count()):
 								info.html(e);
 							}
 						},
-						error: e => {
+						error: e => {v.dError(e, true)
 							info.html(e);
 						}
 					});
@@ -154,9 +145,6 @@ if($e->count()):
 		} else {
 			info.html('Select an answer!');
 		}
-
-		
-
 	});
 	
 	$('.exam .option div').click(function(){
@@ -219,4 +207,13 @@ else:
 
 
 <?php
+if (@$r) {
+	$e->table("attendance");
+	
+	$e->set(["sit"], [1])
+	->concat(["and", "and"])
+	->where(["session", $sss], ["a_id", $user],["subject", "$r->subject"])
+	->exec();
+}
+
 require_once "inc/footer.php";

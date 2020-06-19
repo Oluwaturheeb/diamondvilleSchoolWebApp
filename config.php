@@ -24,6 +24,7 @@ $GLOBALS['config'] = [
     	"development" => true
     ],
     "file-upload" => [
-        "max-file-upload" => 5
+        "max-file-upload" => 5,
+        "rename-file" => false
     ]
 ];

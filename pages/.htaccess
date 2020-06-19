@@ -1,3 +1,4 @@
 RewriteEngine On
 RewriteRule ^req$ index.php
 RewriteRule ^([a-zA-Z_]+)$	$1.php?%{QUERY_STRING} [L]
+RewriteRule ^student/([0-9]+)$	student.php?a_id=$1 [L]

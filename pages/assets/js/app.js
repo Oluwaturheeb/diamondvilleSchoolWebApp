@@ -53,7 +53,7 @@ $(document).ready(function () {
 					} else {
 						info.html(e.msg).css({'color': '#d80808', 'font-style': 'oblique'});
 					}
-				}
+				},error: e => {v.dError(e, true)}
 			});
 		}
 	});
@@ -97,12 +97,12 @@ $(document).ready(function () {
 		
 		$('.action form').submit(function (e) {
 			e.preventDefault();
-			var info = $('.info');
+			var info = $(this).children('.info');v.dError(info, true);
 			v.autoForm(this);
 			if (v.check()) {
 				info.html(v.thrower());
 			} else {
-				v.withAuto()
+				v.withAuto(info);
 			}
 		});
 
@@ -170,7 +170,7 @@ $(document).ready(function () {
 	// closing the profile tab
 
 	$('.profile .close').click(() => {
-		$('.profile .close').next().removeClass("header").empty();
+		$('.profile .close').next("div.header").remove();
 		$('.hidden').hide();
 	});
 
@@ -240,6 +240,30 @@ $(document).ready(function () {
 				$('.form-question').append('<div class="form-group"><div class="info"></div><button class="btn btn-success">Submit</button></div>');
 			}
 			c++;
+		}
+	});
+
+	$("form#change-pic").change(function (e) {
+		e.preventDefault();
+		var chk = confirm(
+			"You're about to update this image, do you want to continue!"
+		);
+
+		if (chk) {
+			$.ajax({
+				data: new FormData(this),
+				success: e => {
+					if (e.msg == "ok") {
+						alert("Picture changed successfully");
+						v.redirect();
+					} else {
+						v.dError(e, true);
+					}
+				},
+				cache: false,
+				processData: false,
+				contentType: false
+			});
 		}
 	});
 });

@@ -139,7 +139,7 @@ class Easy extends Db {
 				$this->set($this->_col, $this->_inp);
 				
 				if ($where) {
-					$this->where($where);
+					$this->where($this->_val = $where, true);
 				}
 
 				$this->_method = "update";
@@ -164,7 +164,7 @@ class Easy extends Db {
 				$d->concat($con);
 			}
 
-				$this->where($this->_val = $this->with_supp($this->_col, $this->_inp), true);
+			$this->where($this->_val = $this->with_supp($this->_col, $this->_inp), true);
 			if (count($this->_col))
 
 			$this->_method = "delete";
@@ -221,6 +221,7 @@ class Easy extends Db {
 					$this->_col = $var[0];
 				break;
 		}
+
 		// resetting here 
 		
 		if ($this->_col) {
@@ -234,7 +235,6 @@ class Easy extends Db {
 				break;
 			case "update":
 				$this->set($this->_col, $this->_inp);
-
 				if ($this->_val) {
 					$this->where($this->_val, true);
 				}
@@ -243,11 +243,12 @@ class Easy extends Db {
 				if ($this->_val)
 					if(!is_array(end($this->_val)) && !is_numeric($this->_val)) 
 						$c = $this->concat(end($this->_sql));
-				
+
+
 				if (count($this->_col)) {
 					$this->where($this->with_supp($this->_col, $this->_inp), true);
 					if ($this->_pages)
-						$this->sort()->pages($this->_pages, "page");
+						$this->pages($this->_pages, "page");
 				}
 				break;
 			case "delete":
@@ -292,12 +293,6 @@ class Easy extends Db {
 			}
 		}
 		if (!$this->_error) {
-			if (!is_array($this->_table)) {
-				$this->_error = "**Error: The table method require an array as param!";
-			} else {
-				$this->get($col)->use("join", array_fill(1, count($this->_table) - 1, "left"))->match($pre);
-			}
-
 			if (count($where)) { 
 				$this->_col = $this->_inp = [];
 				if(!is_array(end($where)) && !is_numeric($where)) {
@@ -314,8 +309,13 @@ class Easy extends Db {
 				}
 				$this->where($where, true);
 			} elseif ($this->_col) {
-				;
 				$this->where($this->with_supp($this->_col, $this->_inp), true);
+			}
+			
+			if (!is_array($this->_table)) {
+				$this->_error = "**Error: The table method require an array as param!";
+			} else {
+				$this->get($col)->use("join", array_fill(1, count($this->_table) - 1, "left"))->match($pre);
 			}
 			$this->_method = "fetch";
 		}

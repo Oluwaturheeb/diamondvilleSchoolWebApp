@@ -298,6 +298,10 @@ footer {
 	padding: 5px;
 }
 
+.check2radio.image {
+  height: 3rem;
+}
+
 /* auto profile */
 
 .hidden {
@@ -337,14 +341,14 @@ footer {
 	height: 15rem;
 }
 
-.profile .header .icon {
+.header .icon {
 	display: grid;
 	grid-auto-flow: column;
 	justify-content: start;
 	grid-gap: 1rem;
 }
 
-.profile .header .icon img {
+.header .icon img {
 	width: 1.5rem;
 	height: 1.5rem;
 }
@@ -352,6 +356,18 @@ footer {
 .profile .header div {
 	align-content: first baseline;
 	grid-gap: 10px;
+}
+
+.promote form {
+	margin: 2rem 0;
+}
+
+.students .list {
+	display: grid;
+	grid-auto-flow: column;
+	justify-content: start;
+	grid-gap: 1rem;
+	padding: 10px;
 }
 
 @media (min-width: 576px) {

@@ -4,6 +4,9 @@ require_once "Autoload.php";
 if (!Session::check("user"))
 	Redirect::to("/login");
 
+if (Session::get("active") == 1) 
+	Redirect::to("student");
+
 $user = Session::get("user");
 $cls = Session::get("class");
 $sss = Session::get("session");
@@ -14,9 +17,9 @@ require_once "inc/header.php";
 
 $e = new Easy();
 $e->table("event");
-$echeck = $e->fetch(["id", "content", "type"], ["type", "exams"])->exec();
+$echeck = $e->fetch(["id", "content", "type"], ["type", "exams"])->exec(1);
 
-if($e->count()):
+if($echeck->content === date("Y-m-d")):
 	// getting data from attendance if the student have sat for an exam b4 for the given session
 	$e->table("attendance");
 	$e->concat(["and", "and"]);
@@ -94,7 +97,7 @@ if($e->count()):
 	
 	$('.control-btn button').click(function () {
 		var val = $('.option input:checkbox:checked').val();
-		if(!v.empty(val, true)){
+		if(!v.empty(val)){
 			// this empty the info if error
 			info.html('');
 

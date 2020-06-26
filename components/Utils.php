@@ -2,7 +2,7 @@
 
 class Utils{
 	public static function time () {
-		return date("D, jS \of M, Y");
+		return date("D, jS \of F Y");
 	}
 	
     public static function time_to_ago ($time, $check = false){

@@ -6,7 +6,7 @@ if(!Session::check("user"))
 else
 	$title = "Admin panel";
 	
-if (Session::get("user") > 2) 
+if (Session::get("level") > 2)
 	Redirect::to("/student");
 
 require_once "inc/header.php";
@@ -21,17 +21,21 @@ $user = Session::get("user");
 // fetching subjects
 
 $e->table("subject");
-$sub = $e->fetch(["subject"])->exec();
+$sub = $e->fetch(["subject"], ["subject", "!=", ""])->exec();
 $sub = explode(", ", $sub[0]->subject);
 
 // getting the current session
 
 $e->table("event");
-$events = $e->fetch()->exec();
+$events = $e->fetch(["*"], ["type", "!=", ""])->exec();
 foreach ($events as $key) {
 	if ($key->type == "session") {
 		$c_ses = $key->content;
 	}
+}
+
+if (!isset($c_ses)) {
+	$c_ses = "Current session unknown!";
 }
 
 // getting current user data
@@ -91,7 +95,7 @@ if ($ses == 2)
 					<!-- Add subject -->
 
 					<div class="add-subject">
-						<h1>Subjects</h1>
+						<h2>Subjects</h2>
 						<form method="post">
 							<div class="form-group">
 								<label for="class">Class</label>
@@ -124,42 +128,79 @@ if ($ses == 2)
 					</div>
 
 					<!-- students -->
-					
-					<div class="students">
-						<h2>Students</h2>
-						<?php
-						$e->table("student");
-						$sd = $e->fetch(["concat(first, ' ', last) as name", "pin", "dept", "class", "age", "picture", "a_id"])->exec();
 
-						foreach ($sd as $s): ?>
-							<div class="header">
-								<div class="image">
-									<img src="<?php echo $s->picture ?>" alt="<?php echo $s->name ?>" class="img-thumbnail">
-									<form method="post" enctype="multipart/form-data" id="change-pic">
-										<input type="file" name="img[]" class="uploader" id="file" capture="">
-										<input type="hidden" name="student" value="<?php echo $s->a_id; ?>">
-										<span>Edit...</span>
-									</form>
+					<div class="students">
+						<h2>Student</h2>
+						<form method="get" class="ignore">
+							<div class="form-group">
+								<label for="class">Class</label>
+								<select class="form-control input-line classes" name="class" id="class">
+									<option value="">Select class</option>
+									<option>Jss 1</option>
+									<option>Jss 2</option>
+									<option>Jss 3</option>
+									<option>Sss 1</option>
+									<option>Sss 2</option>
+									<option>Sss 3</option>
+									<option>Removed</option>
+								</select>
+							</div>
+							<div class="form-group" style="display: none;">
+								<label for="dept">Department</label>
+								<select class="form-control input-line" name="dept" id="dept">
+									<option value="Junior">Junior</option>
+									<option>Art</option>
+									<option>commercial</option>
+									<option>Science</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<div class="info"></div>
+								<input type="submit" name="action-student" class="button" value="Submit">
+							</div>
+						</form>
+							<?php
+							if (isset($_GET["class"])):
+							$e->table("student");
+							$e->fetch(["concat(first, ' ', last) as name", "a_id", "class"])
+							->concat(["and", "and"])
+							->sort("name", "asc")
+							->with("pages", 10);
+
+							// checking if the class value hold removed student
+
+							if ($_GET["class"] == "Removed")
+								$e->with("remove")->with("append", ["active"], [1]);
+							else
+								$e->with("append", ["active"], [0]);
+
+							$sd = $e->exec();
+
+
+							echo "<h2 class='mt-5'>" . $_GET["class"] . "(<small>". $_GET["dept"] ."</small>)</h2>";
+							if ($e->count()):
+							foreach ($sd as $s): ?>
+						<form method="post" class="">
+							<div class="list">
+								<div>
+									<input type="checkbox" name="a_id[]" value="<?php echo $s->a_id; ?>">
 								</div>
 								<div>
 									<a href="student/<?php echo $s->a_id; ?>"><b><?php echo $s->name ?></b></a>
-									<i><?php echo $s->age, "yrs" ?></i>
-									<i><?php echo $s->class ?></i>
-									<i><?php echo $s->dept, " class" ?></i>
-									<small><i><?php echo $s->pin ?></i></small>
 								</div>
 							</div>
-						<?php endforeach; ?>
-					</div>
-
-					<!-- report -->
-
-					<div class="report">
-						<h2>Report</h2>
-						<form method="post" action="ajax">
+							<?php endforeach; ?>
+							<div class="form-group mt-4">
+								<label for="student-action">Action</label>
+								<select name="action" id="student-action" class="form-control input-line classes">
+									<option value="">Select action</option>
+									<option>Promote</option>
+									<option>Remove</option>
+								</select>
+							</div>
 							<div class="form-group">
-								<label>Class</label>
-								<select name="class" id="class" class="form-control input-line classes">
+								<label for="class">Class</label>
+								<select class="form-control input-line classes" name="class" id="class">
 									<option value="">Select class</option>
 									<option>Jss 1</option>
 									<option>Jss 2</option>
@@ -178,69 +219,19 @@ if ($ses == 2)
 									<option>Science</option>
 								</select>
 							</div>
-							<div class="form-group" style="display: none;">
-								<input type="hidden" name="type" value="score">
+							<div class="form-group">
+								<div class="info"></div>
+								<button class="button">Submit</button>
 							</div>
-							<div class="info"></div>
 						</form>
-						<div class="report-result"></div>
-					</div>
-					
-					<!-- info -->
-
-					<?php elseif ($ses == 2): ?>
-					<div class="info">
-						<h2>Account Information</h2>
-					</div>
-					
-					<!-- report -->
-					<div class="report">
-						<h2>Report</h2>
-						
+						<?php else:
+							echo "No student found for ". $_GET['class'];
+						endif;
+						 endif; ?>
 					</div>
 
-					<!-- exam -->
-					<div class="exam">
-						<h2>Exam</h2>
-						<p class="note text-left mb-3">
-						<small>Note: If there is already a question saved, any question set will be an update to the subject!</small>
-						</p>
-						<form method="post" id="" class="mt-4">
-							<div class="form-group select">
-								<label>Class</label>
-								<select name="class" class="form-control input-line" id="exam-sub">
-									<option value="">Select class</option>
-									<?php foreach(explode(", ", $r->class) as $c): ?>
-										<option><?php echo $c; ?></option>
-									<?php endforeach; ?>
-								</select>
-								<div class="subject-info"></div>
-							</div>
-							<div class="form-group select">
-								<label>Subject</label>
-								<select name="subject" class="form-control input-line" id="exam-sub">
-									<option value="">Select subject</option>
-									<?php foreach(explode(", ", $r->subject) as $s): ?>
-										<option><?php echo $s; ?></option>
-									<?php endforeach; ?>
-								</select>
-								<div class="subject-info"></div>
-							</div>
-							<div class="form-group set">
-								<label>Total question</label>
-								<input type="number" id="set" class="form-control input-line" placeholder="Enter number...">
-							</div>
-							<div>
-								<input type="hidden" name="type" value="exam">
-							</div>
-							<div class="form-question form-group"></div>
-						</form>
-					</div>
-
-					<?php endif; ?>
-				
 					<!-- Add teacher -->
-					<?php if ($ses == 1): ?>
+
 					<div class="add-teacher">
 						<form method="post" id="create-teacher" class="" autocomplete="">
 							<h2>Add teacher</h2>
@@ -385,7 +376,147 @@ if ($ses == 2)
 							</div>
 						</form>
 					</div>
+
+					<!-- Notication -->
+
+					<div class="notty">
+						<h2>Send notification</h2>
+						<form method="post" action="ajax">
+							<div class="form-group">
+								<label for="class">Class</label>
+								<select class="form-control input-line" name="selected" id="class">
+									<option value="">Select class</option>
+									<option>Jss 1</option>
+									<option>Jss 2</option>
+									<option>Jss 3</option>
+									<option>Sss 1</option>
+									<option>Sss 2</option>
+									<option>Sss 3</option>
+									<option>Students</option>
+									<option>Teachers</option>
+									<option>All</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label>Message</label>
+								<textarea name="notty" class="input-line form-control" placeholder="Enter text" rows="7"></textarea>
+							</div>
+							<div class="form-group">
+								<div class="info"></div>
+								<button class="button">Send</button>
+							</div>
+						</form>
+					</div>
+
 					<?php endif; ?>
+
+					<!-- report -->
+
+					<?php if ($ses <= 2): ?>
+
+					<div class="report">
+						<h2>Report</h2>
+						<form method="post" action="ajax">
+							<div class="form-group">
+								<label>Class</label>
+								<select name="class" id="class" class="form-control input-line classes">
+									<option value="">Select class</option>
+									<option>Jss 1</option>
+									<option>Jss 2</option>
+									<option>Jss 3</option>
+									<option>Sss 1</option>
+									<option>Sss 2</option>
+									<option>Sss 3</option>
+								</select>
+							</div>
+							<div class="form-group" style="display: none;">
+								<label for="dept">Department</label>
+								<select class="form-control input-line" name="dept" id="dept">
+									<option value="Junior">Junior</option>
+									<option>Art</option>
+									<option>commercial</option>
+									<option>Science</option>
+								</select>
+							</div>
+							<div class="form-group" style="display: none;">
+								<input type="hidden" name="type" value="score">
+							</div>
+							<div class="info"></div>
+						</form>
+						<div class="result"></div>
+					</div>
+					<?php endif; ?>
+					
+					<!-- info -->
+
+					<div class="account">
+						<div class="auth" style="display: block;">
+							<h2>Account Information</h2>
+							<div id="chpwd">
+								<div class="days"></div>
+								<form method="post" action="">
+									<div class="">
+										<label>New password</label>
+										<input type="password" name="verify" placeholder="New password" class="form-control input-line">
+									</div>
+									<div class="">
+										<label>Verify password</label>
+										<input type="password" name="password" placeholder="Verify password" class="form-control input-line">
+									</div>
+										<input type="hidden" name="type" value="chpwd">
+									<div id="captcha"></div>
+									<?php echo Validate::csrf(); ?>
+									<div>
+										<div class="info"></div>
+										<button class="button">Change</button>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+
+					<?php if ($ses == 2):?>
+
+					<!-- exam -->
+
+					<div class="exam">
+						<h2>Exam</h2>
+						<p class="note text-left mb-3">
+						<small>Note: If there is already a question saved, any question set will be an update to the subject!</small>
+						</p>
+						<form method="post" id="" class="mt-4">
+							<div class="form-group select">
+								<label>Class</label>
+								<select name="class" class="form-control input-line" id="exam-sub">
+									<option value="">Select class</option>
+									<?php foreach(explode(", ", $r->class) as $c): ?>
+										<option><?php echo $c; ?></option>
+									<?php endforeach; ?>
+								</select>
+								<div class="subject-info"></div>
+							</div>
+							<div class="form-group select">
+								<label>Subject</label>
+								<select name="subject" class="form-control input-line" id="exam-sub">
+									<option value="">Select subject</option>
+									<?php foreach(explode(", ", $r->subject) as $s): ?>
+										<option><?php echo $s; ?></option>
+									<?php endforeach; ?>
+								</select>
+								<div class="subject-info"></div>
+							</div>
+							<div class="form-group set">
+								<label>Total question</label>
+								<input type="number" id="set" class="form-control input-line" placeholder="Enter number...">
+							</div>
+							<div>
+								<input type="hidden" name="type" value="exam">
+							</div>
+							<div class="form-question form-group"></div>
+						</form>
+					</div>
+					<?php endif; ?>
+
 				</div>
 			</div>
 
@@ -427,9 +558,9 @@ if ($ses == 2)
 				<hr>
 				<form method="post" action="ajax">
 					<h3>Exam</h3>
-					<div class="form-group check2radio">
-						<input type="checkbox" name="content" value="Yes">
-						Exam begins
+					<div class="image check2radio">
+						<input type="date" name="content">
+						<span>Exam begins</span>
 					</div>
 					<div>
 						<div class="info"></div>
@@ -439,15 +570,14 @@ if ($ses == 2)
 				<hr>
 				<form method="post" action="ajax">
 					<h3>Results</h3>
-					<div class="form-group check2radio">
-						<input type="checkbox" name="content" value="Yes">
-						Release results
+					<div class="image check2radio">
+						<input type="date" name="content">
+						<span>Release results</span>
 					</div>
 					<div>
 						<div class="info"></div>
 						<input type="hidden" name="type" value="result">
 					</div>
-
 				</form>
 			</div>
 			<?php endif; ?>

@@ -123,7 +123,7 @@ class Auth extends Validate {
 			if ($this->error()) {
 				return ["msg" => $this->error()];
 			} else {
-				$d->update([], Session::get("user"))->with("remove", ["type", "verify"])->with("append", ["last_pc"], ["now()"])->exec();
+				$d->update(Session::get("user"))->with("remove")->with("append", ["last_pc", "password"], ["now()", $this->hash($this->req("password"))])->exec();
 				if ($d->error()) 
 					return ["msg" => $d->error()];
 				else 

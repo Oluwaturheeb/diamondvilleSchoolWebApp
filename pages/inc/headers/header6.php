@@ -19,19 +19,19 @@
 				<a href="<?php echo $loc ?>"><?php echo $acc ?></a>
 				<?php if ($l == 1): ?>
 				<!-- admin links -->
+				<a href="/account" class="edit">Change password</a>
 				<a href="/teachers" class="edit">Teachers</a>
 				<a href="/add-teacher" class="edit">Add teacher</a>
 				<a href="/add-student" class="edit">Add student</a>
 				<a href="/add-subject" class="edit">Add subject</a>
+				<a href="/notty" class="edit">Notification</a>
 				<a href="/report" class="edit">Report</a>
 				<a href="/students" class="edit">Students</a>
 				<?php elseif ($l == 2): ?>
 				<!-- teacher link -->
-				<a href="/info" class="edit">Account</a>
-				<a href="/add-student" class="edit">Add student</a>
+				<a href="/account" class="edit">Change password</a>
 				<a href="/exam" class="edit">Exam</a>
 				<a href="/report" class="edit">Report</a>
-				<a href="/students" class="edit">Students</a>
 				<?php elseif ($l == 3): ?>
 				<!-- student link -->
 				<a href="/report" class="edit">Report</a>

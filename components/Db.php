@@ -207,10 +207,12 @@ class Db {
 				$this->_query_value = $gen[1];
 			}
 
+			//  this is meant for joins
 			if ($this->_misc !== true) {
 				$this->_lastid = $gen[0];
 				if (!is_array($this->_sql))
-					$this->_sql .= " " . $gen[0];
+					$this->_sql .= " " . $this->_lastid;
+
 			} else {
 				$this->_sql = substr($this->_sql, 0, -1);
 				$this->_sql .= " " . $gen[0] . ")";

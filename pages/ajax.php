@@ -14,6 +14,28 @@ function response ($data = "ok") {
 	}
 }
 
+function attendance ($id) {
+	global $e, $a;
+	$e->table("subject");
+	$sub = $e->fetch(["subject"], ["dept", $a->fetch("dept")])->exec(1);
+
+	if (!is_array($id)) {
+		foreach (explode(", ", $sub->subject) as $s) {
+			$e->table("attendance");
+			$e->add(["subject", "a_id", "session"], [$s, $id, Session::get("session")])->exec();
+		}
+	} else {
+		foreach ($id as $value) {
+			foreach (explode(", ", $sub->subject) as $s) {
+				$e->table("attendance");
+				$e->add(["subject", "a_id", "session"], [$s, $value, Session::get("session")])->exec();
+			}
+		}
+	}
+
+	
+}
+
 if (!empty($_POST)) {
 	switch (@$a->req()["type"]) {
 		case "login":
@@ -83,13 +105,7 @@ if (!empty($_POST)) {
 					response($e->error());
 				} else {
 					if ($a->req("create") == "student") {
-						$e->table("subject");
-						$sub = $e->fetch(["subject"], ["dept", $a->fetch("dept")])->exec(1);
-
-						foreach (explode(", ", $sub->subject) as $s) {
-							$e->table("attendance");
-							$e->add(["subject", "a_id", "session"], [$s, $id, Session::get("session")])->exec();
-						}
+						attendance();
 					}
 					response();
 				}
@@ -102,7 +118,7 @@ if (!empty($_POST)) {
 
 		$e->create()->with("remove", ["type"])->exec();
 
-		if ($e->error()) {echo $e->error();
+		if ($e->error()) {
 			response("Subject has already been created for this class");
 		} else {
 			response();
@@ -333,8 +349,91 @@ if (!empty($_POST)) {
 __here;
 					}
 				}
-				response($rep);
+				response(["msg" => "ok", "data" => $rep]);
 			}
+		}
+	}
+
+	if ($a->req("action")) {
+		$req = $a->req("action");
+
+		$fn = function ($int) {
+			if (!is_numeric($int)) {
+				return "error";
+			} else {
+				return $int;
+			}
+		};
+
+		$id = array_map($fn, $a->fetch("a_id"));
+
+		if (in_array("error", $id)) {
+			// return error;
+			response("Unknown error occurred, try again!");
+		} else {
+			$id = implode(", ", $a->fetch("a_id"));
+
+			if ($req == "Promote") {
+				// promotion
+				$cls = $a->fetch("class");
+				$d = $a->fetch("dept");
+
+				$e->customQuery("update student set class = '$cls', dept = '$d' where a_id in ($id)")
+				->res();
+				
+				// delete all attendance since it wont be needed in both cases of promote and remove!
+
+				$e->customQuery("delete from attendance where a_id in ($id)")->res();
+				if (!$e->count()) {
+					response("Unknown error occurred, try again!");
+				} else {
+					attendance($a->fetch("a_id"));
+					response();
+				}
+			} elseif ($req == "Remove") {
+				// removing 
+
+				$e->customQuery("update student set active = '1' where a_id in ($id)")
+				->res();
+
+				if (!$e->count()) {
+					response("Unknown error occurred, try again!");
+				} else {
+					response();
+				}
+			}
+		}
+	}
+
+	// sending notty 
+
+	if ($a->req("selected")) {
+		$a->val_req();
+
+		if ($a->error()) {
+			response($a->error());
+		} else {
+			$e->table("auth");
+			switch ($a->fetch("selected")) {
+				case 'All':
+					$e->get(["email"]);
+					break;
+				case 'Students':
+					$e->fetch(["email"])->with("remove")->with("append", ["type"], [3]);
+					break;
+				case 'Teachers':
+					$e->fetch(["email"])->with("remove")->with("append", ["type"], [2]);
+					break;
+				default:
+					$e->fetch(["email"])->with("remove", ["notty"]);
+					break;
+			}
+			$emails = $e->exec();
+			$email = "";
+			foreach ($emails as $value) {
+				$email .= " " . $value->email;
+			}
+			response(["msg" => "ok", "data" => "All email have been gotten but send the msfg require an email libary to be added to this project! $email"]);
 		}
 	}
 }

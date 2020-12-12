@@ -9,7 +9,9 @@
 	<title><?php echo $title, " @ ", PNAME ?></title>
 	<link rel="stylesheet" href="assets/boot/bootstrap.css">
 	<link rel="stylesheet" type="text/css" href="<?php echo style . "app.css" ?>">
+	<!--<link rel="stylesheet" href="<?php echo style . 'animate.css'?>">-->
 	<script src="<?php echo jq ?>"></script>
+	<!--<script src="<?php echo js, "wow.js" ?>"></script>-->
 	<script src="<?php echo js, "Validate.js" ?>"></script>
 </head>
 <body>
@@ -17,8 +19,8 @@
 	require_once "inc/headers/header6.php";
 ?>
 <div class="bg">
-	<h1>DiamondVille School</h1>
-	<i>High</i>
+	<h1>DiamondVille</h1>
+	<i>Comprehensive School</i>
 </div>
 	<div class="container">
 		<div class="row">

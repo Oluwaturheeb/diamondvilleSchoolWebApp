@@ -22,80 +22,105 @@ if ($_GET) {
 require_once "inc/header.php";
 $e = new Easy();
 
-// getting the current session
+// getting the current session either from the db or from admin visiting the student account
 
-$e->table("event");
-$cc = $e->fetch(["content", "type"])->exec();
-
-if ($e->count()) {
-	foreach ($cc as $key) {
-		if ($key->type == "session") 
-			$c_ses = $key->content;
-		elseif ($key->type == "result")
-			$date = $key->content;
+if (empty($_GET)) {
+	$e->table("event");
+	$cc = $e->fetch(["content", "type"])->exec();
+	
+	if ($e->count()) {
+		foreach ($cc as $key) {
+			if ($key->type == "session") 
+				$c_ses = $key->content;
+			elseif ($key->type == "result")
+			//result event date
+				$date = $key->content;
+		}
+		Session::set("session", $c_ses);
+	} else {
+		$date = null;
+		$c_ses = "Session unavailable";
 	}
-	Session::set("session", $c_ses);
 } else {
-	$date = null;
-	$c_ses = "Session unavailable";
+	$c_ses = Session::get('session');
 }
+// getting student info
 
-
-if (isset($_GET["a_id"])){
+if (isset($_GET["a_id"])){ 
 $e->table(["student", "auth"]);
 	$r = $e->rfetch(
 		["student.*", "email"], 
 		[["a_id", "auth.id"]],
 		)
 		->exec(1);
+		// from from a visiting admin we should always set this 
+		Session::set('user-info', $r);
 } else {
-	$e->table("student");
-	$r = $e->fetch(
-		["*"] ,
-		["a_id", $user]
-		)
-		->exec(1);
+	if (!Session::get('user-info')) {
+		$e->table("student");
+		$r = $e->fetch(
+			["*"] ,
+			["a_id", $user]
+			)
+			->exec(1);
+		Session::set('user-info', $r);
+		Session::set("class", $r->class);
+		Session::set("dept", $r->dept);
+		Session::set("active", $r->active);
+	}	
 }
-Session::set("class", $r->class);
-Session::set("dept", $r->dept);
-Session::set("active", $r->active);
 
-if ($r->active) 
-	$active = "Welcome <b>$r->first $r->last</b>, you can only view and print your result since you are no longer a part of the system!";
+$r = Session::get('user-info');
+$dashdate = Utils::time($r->dob);
+
+$dash = <<<__here
+						<strong>Fullname</strong>
+						<p class="pl-2">$r->fullname ($r->gender)</p>
+						<strong>Guardian Fullname</strong>
+						<p class="pl-2">$r->pre. $r->p_name</p>
+						<strong>Student ID</strong>
+						<p class="pl-2">$r->pin</p>
+						<strong>Date Of Birth</strong>
+						<p class="pl-2">$dashdate ($r->age)</p>
+						<strong>Address</strong>
+						<p class="pl-2">$r->hadd</p>
+__here;
+
+if (@$r->active) 
+	$active = "Welcome <b>$r->fullname</b>, you can only view and print your result since you are no longer a part of the system!";
 else 
 	$active = Utils::time() . " -- " . $c_ses;
+	
+	if ($r):
 ?>
 
 		<div class="col-12 mt-3">
 			<div class="header">
 				<?php
 				if (Session::get("level") < 3) {
-				$admin = "<div>
-					<div>$r->pre. $r->p_first $r->p_last (Parent/Guardian)</div>
-					<div class='icon'>
-						<a href='mailto:$r->email'><img src='assets/img/email.png'></a>
-						<a href='tel:$r->phone'><img src='assets/img/phone.svg'></a>
-					</div>
-					<div>$r->email</div>
-					<div>$r->dob ($r->age)</div>
-					<div>$r->hadd</div>
-				</div>";
+				$admin = "<div>$r->pre. $r->p_name (Parent/Guardian)</div>";
 				} else {
 					$admin = "";
 				}
 				echo <<<__here
-				<img src="$r->picture" alt="$r->first" class="img-thumbnail">
+				<img src="$r->picture" alt="$r->fullname" class="img-thumbnail">
 				<div>
-					<b>$r->first $r->last</b>
+					<b>$r->fullname</b>
 					$admin
 					<small>$r->class</small>
 					<small><i>$r->dept class</i></small>
 				</div>
 			</div>
-__here; ?>
-			<div class="bl mt-4 px-3"><i><?php echo $active ?></i></div>
+__here; 
+endif;
+?>
+
+		<div class="bl mt-4 px-3"><i><?php echo $active ?></i></div>
 		</div>
 
+		<?php
+		if ($r):
+		?>
 		<?php
 		$e->table("score");
 		$sc = $e->fetch(["*"], ["a_id", $user])->exec();
@@ -126,9 +151,11 @@ __here; ?>
 
 				if($ss->class == $r->class) {
 					// checking if we can display the result for this session
-
-					if (!empty($date) && $date !== date("Y-m-d")) 
-						$tr = "<tr><td>$ss->session</td><td colspan='4'>Result for this session is witheld by the Adminstrator's Department</td></tr>";
+					var_dump(time() >= strtotime($date));
+					if (empty($date))
+						$tr = 'unspecified date';
+					elseif (time() <= strtotime(@$date)) 
+						$tr = "<tr><td>$ss->session</td><td colspan='4'>Result for this session is been witheld by the Adminstrator's Department till $date</td></tr>";
 					
 					$trr .= $tr;
 					$cur = <<<__here
@@ -224,10 +251,21 @@ __here;
 				}
 			}
 			$report = $cur . $s2 . $s1 . $j3 . $j2 . $j1;
+			?>
+			<?php
+			else:
+			$report = '<p>No student match the query!</p>';
+			endif;
 		?>
 
-		<div class="col-12 col-sm-8 mt-5">
+		<div class="col-12 col-sm-8 mt-5 mx-3">
 			<div class="action">
+				<div class="dashboard">
+					<h2>Dashboard</h2>
+					<div class="my-4 px-3">
+						<?php echo $dash ?>
+					</div>
+				</div>
 				<div class="report">
 					<h2>Report</h2>
 					<?php echo $report; ?>

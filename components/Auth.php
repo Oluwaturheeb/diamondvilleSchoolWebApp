@@ -135,12 +135,14 @@ class Auth extends Validate {
 	public function lpass () {
 		$d = $this->_e;
 		list($col, $val) = $this->val_req();
-		
-		$d->get($col[0])
+		print_r($col);
+		$res = $d->get($col[0])
 		->where([$col[0], $val[0]])
 		->res();
 		
-		if ($d->error() || !$d->count()) 
+		print_r($res);
+		
+		/*if ($d->error() || !$d->count()) 
 			$this->addError("Email does not match any account, try again!");
 
 		$token = Utils::gen();
@@ -148,8 +150,8 @@ class Auth extends Validate {
 		$time_exp = time() + 60 * 60 * 30;
 		$time = time("d-M-y h:m:i", $time_exp);
 
-		mail($d[0]->email, "Password recovery", "click <a href='$dom/fpass/$token'>here</a> this link expires $time");
+		/*mail($d[0]->email, "Password recovery", "click <a href='$dom/fpass/$token'>here</a> this link expires $time");
 		$msg = mail(to, subject, message);
-		echo $msg;
+		echo $msg;*/
 	}
 }

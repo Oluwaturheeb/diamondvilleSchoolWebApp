@@ -32,9 +32,9 @@ function attendance ($id) {
 			}
 		}
 	}
-
-	
 }
+
+// login and reg
 
 if (!empty($_POST)) {
 	switch (@$a->req()["type"]) {
@@ -78,6 +78,27 @@ if (!empty($_POST)) {
 			} else {
 				$password = substr($a->hash($u->gen(true)),  0, 8);
 				$type = 3;
+				
+				switch ($a->req('class')) {
+					case 'Jss 1':
+						$fee = 10000;
+						break;
+					case 'Jss 2':
+						$fee = 15000;
+						break;
+					case 'Jss 3':
+						$fee = 18000;
+						break;
+					case 'Sss 1':
+						$fee = 20000;
+						break;
+					case 'Sss 2':
+						$fee = 21000;
+						break;
+					case 'Sss 3':
+						$fee = 25000;
+						break;
+				}
 			}
 			
 			$d->table("auth");
@@ -105,7 +126,9 @@ if (!empty($_POST)) {
 					response($e->error());
 				} else {
 					if ($a->req("create") == "student") {
-						attendance();
+						attendance($id);
+						$d->table('fees')
+						->add(['a_id', 'fees', 'session', 'status'], [$id, $fee, Session::get('session'), 'false'])->res();
 					}
 					response();
 				}
@@ -178,10 +201,15 @@ if (!empty($_POST)) {
 		->res(1);
 		$ans = explode("___", $ans->answer);
 		$exam = $a->req("exam-ans");
+		
+		if ($exam) {
+			$sc = count($ans) - count(array_diff_assoc($ans, $exam));
+		} else {
+			$sc = 0;
+		}
 
 		// check against the supplied answer
-		$sc = count($ans) - count(array_diff_assoc($ans, $exam));
-		$sc .= " / " . count($ans);
+		$sc .= ' / ' . count($ans);
 		
 		//getting student data from score table
 		$d->table("score");
@@ -213,18 +241,22 @@ if (!empty($_POST)) {
 			$data = $u->json([$data]);
 			$d->add(["data", "a_id", "session", "class"], [$data, $user, $ses, $cls])->res();
 		}
-
-		if (!$d->count()) {
-			response($d->error());
-		} else {
-			response();
-		}
+		
+		// marking attendance for d subject done 
+		
+		$d->table('attendance');
+		$d->set(['sit'] ,[1])
+		->where(
+			['a_id', $user], ['subject', $sub]
+		)->res();
+		
+		response();
 	}
 
 	if ($a->req("profile")) {
 		$e->table([$a->req("acc"), "auth"]);
 		$r = $e->rfetch(
-			["concat(first, ' ', last) as name", "email", "dob", "age", "hadd", "picture", "pre", "phone"],
+			["fullname as name", "email", "dob", "age", "hadd", "picture", "pre", "phone"],
 			[["a_id", "auth.id"]]
 			)
 			->with("remove")
@@ -246,7 +278,7 @@ if (!empty($_POST)) {
 				<div>$r->hadd</div>
 			</div>
 		</div>
-	__here;
+__here;
 
 		response(["msg" => "ok", "payload" => $res]);
 	}
@@ -297,7 +329,7 @@ if (!empty($_POST)) {
 			$e->table("student");
 
 			$ss = $e->fetch(
-				["concat(first, ' ', last) as name", "student.a_id"]
+				["fullname as name", "student.a_id"]
 			)
 			->with("remove", ["type"])
 			->sort("name")
@@ -438,6 +470,56 @@ __here;
 	}
 }
 
+// fees 
+
+if ($a->req('sid')) {
+	$a->val_req();
+	
+	if ($a->error()) {
+		response($a->error());
+	} else {
+		$id = Session::get('user-info')->a_id;
+		
+		// get the email associate to the acc
+		$mail = $d->table('auth')
+		->get(['email'])
+		->where(['id', $id])->res(1);
+		
+		if (!$d->count()) {
+			response('Student ID provided is not valid!');
+		} else {
+			$email = $mail->email;
+			
+			$f = $d->table('student')
+			->get()
+			->where(['pin', $a->req('sid')])
+			->res(1);
+			
+			if (!$d->count()) {
+				response('The provided Student Id is invalid');
+			} else {
+				if ($id !== $f->a_id) {
+					response('The student id provided does not fall under your guardianship.');
+				} else {
+					// another query to get fees to pay!
+					$fee = $d->table('fees')
+					->get()
+					->where(['status', 'false'], ['a_id', $id])
+					->res();
+					
+					if (!count($fee)) {
+						response('All fees has been cleared, thank you!');
+					} else {
+						foreach ($fee as $e) {
+							//do something 
+							//echo $e;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 if ($_FILES) {
 	$v = new Validate();

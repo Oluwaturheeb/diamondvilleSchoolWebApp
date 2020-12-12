@@ -19,14 +19,14 @@
 				<a href="<?php echo $loc ?>"><?php echo $acc ?></a>
 				<?php if ($l == 1): ?>
 				<!-- admin links -->
-				<a href="/account" class="edit">Change password</a>
-				<a href="/teachers" class="edit">Teachers</a>
-				<a href="/add-teacher" class="edit">Add teacher</a>
 				<a href="/add-student" class="edit">Add student</a>
 				<a href="/add-subject" class="edit">Add subject</a>
+				<a href="/add-teacher" class="edit">Add teacher</a>
+				<a href="/account" class="edit">Change password</a>
 				<a href="/notty" class="edit">Notification</a>
 				<a href="/report" class="edit">Report</a>
 				<a href="/students" class="edit">Students</a>
+				<a href="/teachers" class="edit">Teachers</a>
 				<?php elseif ($l == 2): ?>
 				<!-- teacher link -->
 				<a href="/account" class="edit">Change password</a>
@@ -35,6 +35,7 @@
 				<?php elseif ($l == 3): ?>
 				<!-- student link -->
 				<a href="/report" class="edit">Report</a>
+				<a href="/fees" class="">Pay Fees</a>
 				<a href="/exam">Exam</a>
 				<?php endif; ?>
 				<a href="/logout">Logout</a>
@@ -48,10 +49,9 @@
 		</div>
 		<div class="links">
 			<a href="/">Home</a>
-			<a href="/about">About</a>
-			<a href="/contact">Contact</a>
-			<a href="search" class="search">Search</a>
-		</div>
+			<a href="#contact">Contact</a>
+			<a href="/blog">Blog</a>
+		</div><!--
 		<div id="search">
 			<form method="post">
 				<div class="input-group">
@@ -62,5 +62,5 @@
 				</div>
 			</form>
 			<span class="close">&times;</span>
-		</div>
+		</div>-->
 	</nav>

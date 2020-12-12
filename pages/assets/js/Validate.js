@@ -154,7 +154,7 @@ class Validate {
 			},
 			error: e => {info.html(JSON.stringify(e)).css({'color': '#d80808', 'font-style': 'oblique'})}
 		}
-
+		
 		if (typeof v.auto == 'string')
 			$.ajax(ppt);
 		else

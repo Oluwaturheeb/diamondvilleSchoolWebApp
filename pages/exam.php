@@ -19,7 +19,7 @@ $e = new Easy();
 $e->table("event");
 $echeck = $e->fetch(["id", "content", "type"], ["type", "exams"])->exec(1);
 
-if($echeck->content === date("Y-m-d")):
+if(time() >= @strtotime($echeck->content)):
 	// getting data from attendance if the student have sat for an exam b4 for the given session
 	$e->table("attendance");
 	$e->concat(["and", "and"]);
@@ -56,7 +56,22 @@ if($echeck->content === date("Y-m-d")):
 
 	$all = Utils::json(["question" => $q, "a" => $a, "b" => $b, "c" => $c, "d" => $d]);
 ?>
-<div class="exam col-11 col-sm-8 col-md-6">
+<div class="exam col-sm-8 col-md-8 p-5">
+	<script src="assets/js/timezz.js"></script>
+<script>
+			var date = new Date();
+			var toStop = date.setHours(date.getHours() + 1);
+			var cl = timezz('.timer', {
+		    date: toStop
+		 });
+	</script>
+	<div class="col-10">
+		<div class="timer mt-3" id="">
+			<div class="p-2" data-hours></div>
+			<div class="p-2" data-minutes></div>
+			<div class="p-2" data-seconds></div>
+		</div>
+	</div>
 	<div class="my-3">
 		<h3><?php echo $r->subject ?></h3>
 		<small></small>
@@ -77,87 +92,8 @@ if($echeck->content === date("Y-m-d")):
 
 <script>
 	var loop = <?php echo $all ?>;
-	var info = $('.exam-info');
-	
-	var q = loop.question;
-	var a = loop.a;
-	var b = loop.b;
-	var c = loop.c;
-	var d = loop.d;
-	var count = q.length;
-	var next = 1;
-	var init = 0;
-	var arr = [];
-	$('.e-question span').html(q[0]);
-	$('.e-a span').html(a[0]);
-	$('.e-b span').html(b[0]);
-	$('.e-c span').html(c[0]);
-	$('.e-d span').html(d[0]);
-	$('.my-3 small').text('No ' + next +' of ' + count);
-	
-	$('.control-btn button').click(function () {
-		var val = $('.option input:checkbox:checked').val();
-		if(!v.empty(val)){
-			// this empty the info if error
-			info.html('');
-
-			// this updates the question and options
-			$('.e-question span').html(q[0 + next]);
-			$('.e-a span').html(a[0 + next]);
-			$('.e-b span').html(b[0 + next]);
-			$('.e-c span').html(c[0 + next]);
-			$('.e-d span').html(d[0 + next]);
-
-			// this uncheck the last check box option
-			$('.option input:checkbox').prop('checked', false);
-			$('.option div').removeClass('active');
-
-			// this insert all checked option into an array
-			if (arr.length != count) {
-				arr.push(val);
-			}
-
-			if (arr.length == count) {
-				$(this).html("Submit");
-				var con = confirm('You are about to submit!');
-				if (con) {
-					$.ajax({
-						data: {'exam-ans': arr, type: 'exam-submit'},
-						dataType: 'json',
-						success: e => {
-							if (e.msg == 'ok') {
-								info.html("Submitted");
-								v.redirect();
-							} else {
-								info.html(e);
-							}
-						},
-						error: e => {v.dError(e, true)
-							info.html(e);
-						}
-					});
-				}
-			}
-			if (next != count) {
-				next++;
-			}
-
-			$('.my-3 small').text('No ' + next +' of ' + count);
-			if (next == count)
-				$(this).html("Submit");
-		} else {
-			info.html('Select an answer!');
-		}
-	});
-	
-	$('.exam .option div').click(function(){
-		var id = $(this).attr('id');
-		$(this).addClass('active').siblings().removeClass('active');
-		$(this).children('input').prop('checked', true);
-		$(this).siblings().children('input').prop('checked', false);
-	});
-	
 </script>
+<script src="assets/js/exam.js"></script>
 <style type="text/css">
 	.active {
 		padding: 10px;
@@ -210,7 +146,8 @@ else:
 
 
 <?php
-if (@$r) {
+// marking attendance upon seeing the exam
+/*if (@$r) {
 	$e->table("attendance");
 	
 	$e->set(["sit"], [1])
@@ -218,5 +155,5 @@ if (@$r) {
 	->where(["session", $sss], ["a_id", $user],["subject", "$r->subject"])
 	->exec();
 }
-
+*/
 require_once "inc/footer.php";

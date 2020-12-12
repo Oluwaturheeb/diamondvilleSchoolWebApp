@@ -1,8 +1,10 @@
 <?php
 
 class Utils{
-	public static function time () {
-		return date("D, jS \of F Y");
+	public static function time ($time = '', $f = "D, jS \of F, Y") {
+		if ($time) 
+			return date($f, strtotime($time));
+		return date($f);
 	}
 	
     public static function time_to_ago ($time, $check = false){

@@ -1,4 +1,15 @@
-$(document).ready(function () {
+try{
+(function () {
+	var loc = $(location).attr('href').split('/')[3];
+	
+	if (loc  != 'login' && loc == false)
+		$(".owl-carousel").owlCarousel({
+	    autoplay: true,
+	    dots: true,
+	    loop: true,
+	    items: 1,
+	  });
+	
 	/* default js */
 	$.ajaxSetup({
 		url: 'ajax',
@@ -129,25 +140,25 @@ $(document).ready(function () {
 
 	// setting events
 	
-	$('.check2radio').change(function () {
-		var p = $(this).parent('form');
-		var i = $(p).children('div').children('.info');
-		v.autoForm(p);
-
-		if (!v.check()) {
-			alert(v.thrower());
-		} else {
-			v.withAuto(i);
-		}
-	});
-
 	$('.check2radio').click(function(e) {
 		if ($(this).hasClass('active')) {
-			$(this).children().removeClass('active').prop('checked', false)
+			$(this).children().removeClass('active').prop('checked', false);
 		} else {
 			$(this).addClass('active').children('input').prop('checked', true);
 			$(this).siblings('div').removeClass('active').children('input').prop('checked', false);
 		}
+		
+		// setting event 
+			
+			var p = $(this).parent('form');
+			var i = $(p).children('div').children('.info');
+			v.autoForm(p);
+	
+			if (!v.check()) {
+				alert(v.thrower());
+			} else {
+				v.withAuto(i);
+			}
 	});
 
 	$('.list').click(function(e) {
@@ -157,6 +168,10 @@ $(document).ready(function () {
 			$(this).addClass('bl').children('div').children('input').prop('checked', true);
 		}
 	});
+	
+	if (loc.indexOf('class') != -1) {
+		$('.students').show().siblings().hide();
+	}
 
 	$('a.details').click(function (e) {
 		e.preventDefault();
@@ -222,7 +237,7 @@ $(document).ready(function () {
 		}
 	});
 	
-	// setting 
+	// setting  question
 	
 		$('#set').keyup(() => {
 		$('.form-question').empty();
@@ -281,4 +296,44 @@ $(document).ready(function () {
 				v.withAuto('alert', {ok: "Picture changed successfully"});
 		}
 	});
-});
+	
+	$('.contact .item, .contact .h3').on({
+		'mouseover': function() {
+			$(this).prev('.h3').children('i').addClass('radi');
+		},
+		'mouseleave': function () {
+			$(this).prev('.h3').children('i').removeClass('radi');
+		}
+	});
+	
+	// fees 
+	
+	$('.progress-tab form').submit(function(e) {
+		e.preventDefault();
+		
+		var i = $(this).children('.form-group').children('.info')
+		v.autoForm(this);
+		
+		if (!v.check()) {
+			i.html(v.thrower());
+		} else {
+			v.withAuto(i);
+		}
+	});
+	
+	// animation {}
+	
+	 var sw = $(window).innerWidth();
+		if  (sw > 512) {
+			/*$('.wow:even').addClass('slideInLeft');
+			$('.wow:odd').addClass('slideInRight')
+	} else {*/
+		$('.wow').removeClass('slideInLeft').removeClass('slideInRight').addClass('pulse');
+	}
+	
+	
+	// loader
+	setTimeout(() => {
+		$('.load').slideUp(500);
+	}, 3000);
+})(jQuery);}catch(a){alert(a)}

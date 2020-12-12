@@ -22,7 +22,7 @@ $user = Session::get("user");
 
 $e->table("subject");
 $sub = $e->fetch(["subject"], ["subject", "!=", ""])->exec();
-$sub = explode(", ", $sub[0]->subject);
+@$sub = explode(", ", $sub[0]->subject);
 
 // getting the current session
 
@@ -41,7 +41,7 @@ if (!isset($c_ses)) {
 // getting current user data
 
 $e->table("teacher");
-$r = $e->fetch(["concat(pre, '. ', first, ' ', last) as name", "class", "subject", "picture"], ["a_id", "=", $user])->exec(1);
+$r = $e->fetch(["concat(pre, '. ', fullname) as name", "class", "subject", "picture"], ["a_id", "=", $user])->exec(1);
 if ($ses == 2) 
 	Session::set("class", $r->class); 
 	Session::set("session", $c_ses);
@@ -64,7 +64,7 @@ if ($ses == 2)
 				<div class="mt-4"><i><?php echo Utils::time(), " -- ", $c_ses; ?></i></div>
 			</div>
 
-			<div class="col-12 col-sm-9 mt-3 p-3">
+			<div class="col-12 col-sm-9 mt-3 px-5 py-3">
 				<div class="action">
 
 					<!-- Teachers -->
@@ -72,13 +72,13 @@ if ($ses == 2)
 					<div class="teachers">
 						<h2>Teachers</h2>
 						<?php
-						$td = $e->fetch(["concat(pre, '. ', first, ' ', last) as name", "class", "subject", "picture", "a_id"], ["a_id", "!=", Session::get("user")])->exec();
+						$td = $e->fetch(["concat(pre, '. ', fullname) as name", "class", "subject", "picture", "a_id"], ["a_id", "!=", Session::get("user")])->exec();
 						foreach ($td as $t): ?>
 							<div class="header">
 								<div class="image">
 									<img src="<?php echo $t->picture ?>" alt="<?php echo $t->name ?>" class="img-thumbnail">
 									<form method="post" enctype="multipart/form-data" id="change-pic">
-										<input type="file" name="img[]" class="uploader" id="file" capture="">
+										<input type="file" name="img[]" class="uploader" id="file" accept="image/*;capture=camera">
 										<input type="hidden" name="teacher" value="<?php echo $t->a_id; ?>">
 										<span>Edit...</span>
 									</form>
@@ -162,20 +162,18 @@ if ($ses == 2)
 							<?php
 							if (isset($_GET["class"])):
 							$e->table("student");
-							$e->fetch(["concat(first, ' ', last) as name", "a_id", "class"])
+							$e->fetch(["fullname as name", "a_id", "class", 'picture', 'pin'])
 							->concat(["and", "and"])
 							->sort("name", "asc")
 							->with("pages", 10);
 
 							// checking if the class value hold removed student
-
 							if ($_GET["class"] == "Removed")
 								$e->with("remove")->with("append", ["active"], [1]);
 							else
 								$e->with("append", ["active"], [0]);
 
 							$sd = $e->exec();
-
 
 							echo "<h2 class='mt-5'>" . $_GET["class"] . "(<small>". $_GET["dept"] ."</small>)</h2>";
 							if ($e->count()):
@@ -185,8 +183,14 @@ if ($ses == 2)
 								<div>
 									<input type="checkbox" name="a_id[]" value="<?php echo $s->a_id; ?>">
 								</div>
-								<div>
-									<a href="student/<?php echo $s->a_id; ?>"><b><?php echo $s->name ?></b></a>
+								<div class="list-info-admin">
+									<div>
+										<img src="<?php echo $s->picture ?>" alt="<?php echo $s->name ?>" class="img-thumbnail">
+									</div>
+									<div>
+										<a href="student/<?php echo $s->a_id; ?>"><b><?php echo $s->name ?></b></a><br/>
+										<i><?php echo $s->pin ?></i>
+									</div>
 								</div>
 							</div>
 							<?php endforeach; ?>
@@ -245,12 +249,8 @@ if ($ses == 2)
 								</select>
 							</div>
 							<div class="form-group">
-								<label for="first">Firstname</label>
-								<input name="first" type="text" id="first" placeholder="Enter firstname..." class="form-control input-line">
-							</div>
-							<div class="form-group">
-								<label for="last">Lastname</label>
-								<input name="last" type="text" id="last" placeholder="Enter lastname..." class="form-control input-line">
+								<label for="fullname">Fullname</label>
+								<input name="fullname" type="text" id="fullname" placeholder="Enter Fullname..." class="form-control input-line">
 							</div>
 							<div class="form-group">
 								<label for="email">Email</label>
@@ -300,12 +300,8 @@ if ($ses == 2)
 						<form method="post" id="create-student" class="" autocomplete="">
 							<h2 class="my-3">Add student</h2>
 							<div class="form-group">
-								<label for="first">Firstname</label>
-								<input name="first" type="text" id="first" placeholder="Enter firstname..." class="form-control input-line">
-							</div>
-							<div class="form-group">
-								<label for="last">Lastname</label>
-								<input name="last" type="text" id="last" placeholder="Enter lastname..." class="form-control input-line">
+								<label for="first">Fullname</label>
+								<input name="fullname" type="text" id="first" placeholder="Enter Fullname..." class="form-control input-line">
 							</div>
 							<div class="form-group">
 								<label for="gender">Gender</label>
@@ -354,12 +350,8 @@ if ($ses == 2)
 								</select>
 							</div>
 							<div class="form-group">
-								<label for="p-first">Firstname</label>
-								<input name="p_first" type="text" id="p-first" placeholder="Enter firstname..." class="form-control input-line">
-							</div>
-							<div class="form-group">
-								<label for="p-last">Lastname</label>
-								<input name="p_last" type="text" id="p-last" placeholder="Enter lastname..." class="form-control input-line">
+								<label for="p-first">Fullname</label>
+								<input name="p_name" type="text" id="p-first" placeholder="Enter fullname..." class="form-control input-line">
 							</div>
 							<div class="form-group">
 								<label for="email">Email</label>

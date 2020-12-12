@@ -255,7 +255,11 @@ class Validate {
 	public static function hash ($hash) {
 		$hash = str_split($hash, 2);
 		$hash = "$hash[2] $hash[0] $hash[1]";
-		return hash("sha256", $hash);
+		return hash("whirlpool", self::baseHash($hash));
+	}
+	
+	private static function baseHash ($hash) {
+		password_hash(openssl_encrypt($hash, 'aes192', 'secret for tlight password hash is 3 much of a secret ', OPENSSL_RAW_DATA, 'tlight is glowin'), PASSWORD_BCRYPT);
 	}
 	
 	public function addError($error = ""){

@@ -6,6 +6,7 @@
 	--hover: #FF4444;
 	--bg: #F6F3DD;
 	--text: #333;
+	--shad: 
 }
 
 .bg {
@@ -170,13 +171,13 @@ nav .links a,
 
 .land {
 	display: grid;
-	min-height: 32rem;
+	min-height: 33rem;
 	background-image: linear-gradient(to left, var(--text), #000);
 }
 
 .land h1 {
 	color: var(--pry);
-	text-shadow: .1rem .1rem .4rem var(--sec);
+	text-shadow: .2rem .1rem .4rem var(--sec);
 	font-size: 3rem;
 }
 
@@ -185,31 +186,44 @@ nav .links a,
 	flex-flow: row wrap;
 	justify-content: center;
 	grid-gap: 1rem .7rem;
-	animation-delay: 4.5sec
 }
 
 .land span {
 	padding: 3px 5px;
 	border-radius: 0 .7rem 0 .7rem;
 	border: 1px solid var(--sec);
-	box-shadow: 1px 1px 1px var(--pry);
+	box-shadow: 0 1px 1px var(--pry);
 	color: var(--sec);
 }
 
-.listing {
-	margin: 5rem 0;
-	box-shadow: 0 0 .2rem var(--header);
-	padding: .8rem;
-	min-height: 26rem;
-}
-
-.listing .h3 {
+.list-item {
+	display: grid;
 	text-align: center;
+	padding: .8rem;
+	margin-bottom: 6rem;
 }
 
-.list-img {
+.list-item:hover,
+.list-item:focus {
+	box-shadow: 0 1px 1px var(--header);
+}
+
+.list-item img {
 	width: 100%;
-	height: 16rem;
+	height: 10rem;
+}
+
+.url .go {
+	background: var(--pry);
+	padding: 10px 2rem;
+	border-radius: 10rem;
+	color: var(--sec);
+	font-weight: bold;
+}
+
+.go:hover,
+.go:focus {
+	background: var(--link);
 }
 
 /* blog */
@@ -533,6 +547,9 @@ footer .social {
 }
 
 @media (min-width: 576px) {
+	.list-item {
+		margin-bottom: 0;
+	}
 	.links a {
 		display: block !important;
 	}

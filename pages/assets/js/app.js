@@ -324,13 +324,11 @@ try{
 	// animation {}
 	
 	 var sw = $(window).innerWidth();
-		if  (sw > 512) {
-			/*$('.wow:even').addClass('slideInLeft');
-			$('.wow:odd').addClass('slideInRight')
-	} else {*/
-		$('.wow').removeClass('slideInLeft').removeClass('slideInRight').addClass('pulse');
+		if  (sw < 512) {
+			$('.list-item.wow').addClass('animate__bounceInUp');
+	} else {
+		$('.wow').removeClass('slideInLeft').removeClass('slideInRight').addClass('animate__flipInX');
 	}
-	
 	
 	// loader
 	setTimeout(() => {

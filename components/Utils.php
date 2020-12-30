@@ -117,7 +117,7 @@ class Utils{
 	}
 	
 	public static function gen($bool = false){
-		if(!$bool) {
+		if($bool == true) {
 			return random_int(1, 999999999);
 		} else {
 			return random_bytes(64);

@@ -12,31 +12,25 @@ class Auth extends Validate {
 	protected function cap () {
 		// checking for login attempts if enabled
 		if (Config::get("auth/login_attempts") > 0) {
-			// if there is captcha in the request this validate the captcha
-			/*if(@$this->req()["captcha"]) {
-				return ["captcha" => $this->capt()];
-			} else {*/
-				// if no captcha this init the captcha process
-				if (!Session::check("count")) {
-					Session::set("count", 1);
-				} else {
-					if (Session::get("count") >= Config::get("auth/login_attempts")) {
-						if (Session::check("cap")) {
-							$cap = Session::get("cap");
-						} else {
-							$cap = substr(Utils::gen(true), 0, 5);
-							Session::set("cap", $cap);
-						}
-						$this->addError(["msg" => "captcha","captcha" => $cap]);
+			if (!Session::check("count")) {
+				Session::set("count", 1);
+			} else {
+				if (Session::get("count") >= Config::get("auth/login_attempts")) {
+					if (Session::check("cap")) {
+						$cap = Session::get("cap");
 					} else {
-						$c = Session::get("count");
-						$c ++;
-						Session::set("count", $c);
+						$cap = substr(Utils::gen(true), 0, 5);
+						Session::set("cap", $cap);
 					}
+					$this->addError(["msg" => "captcha","captcha" => $cap]);
+				} else {
+					$c = Session::get("count");
+					$c ++;
+					Session::set("count", $c);
 				}
-				return $this;
 			}
-		//}
+			return $this;
+		}
 	}
 	
 	public function login ($cols = []) {

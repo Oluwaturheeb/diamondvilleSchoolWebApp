@@ -1,120 +1,287 @@
 class Validate {
 	constructor() {
-		this.success = this.pass = true;
-		this.error = this.auto = '';
+		this.success = true;
+		this.error = this.form = this.auto = null;
 	}
 
-	autoForm (f) {
-		if (typeof f != "object") {
-			this.error('this method expects the (this) object as argument!')
-		} else {
-			// set the error and the pass value to false to avoid the method giving error all the time;
-			this.error = '';
-			this.pass = true;
+	autoForm (form, e = 1) {
+		if (typeof form != "object") {
+			this.error = 'this method expects the (this) object as argument!';
+			return this;
+		}
+		this.form = form;
+		
+		var f = this.form;
+		this.error = '';
+		var ftype = $(f).attr("enctype");
+		var check = $(f).hasClass('validate-ignore');
+		
+		if (!check) {
+			// disable the form from being submitted while validation is going on 
+			this.disableBtn();
+			this.validateTag(f, e);
+			this.enableBtn();
 
-			var ftype = $(f).attr("enctype");
-			var fi = f;
-			f = $(f).children("div");
-
-			/*removing the last element because it contains the submit button
-			i tot i would'nt make senese cus sometimes i used to hide some hidden input there
-			console.log(f);
-			f.pop();*/
-
-			f.each((i, tag) => {
-				var t = $(tag);
-
-				// validation for input
-				if (t.find("input").length) {
-					var inp = t.find("input");
-					var fname = inp.prev("label").html();
-					var type = inp.attr('type');
-					// this check if there is dataval attr
-
-					if (inp.attr("data-val")) {
-						// this.form()
-					} else {
-						if (this.empty(inp, true)) {
-							this.error = fname +" field cannot be empty!";
-							if (type == 'file')
-								this.error = "Select a file to upload in " + fname + "!";
-						} else {
-							if (type == "number" || type == "tel") {
-								if (isNaN(this.getInput(inp))) {
-									this.error = 'Enter a numeric value for ' + fname + '!';
-								}
-							} else if (type == "email") {
-								if (this.getInput(inp).indexOf('.') == -1 || this.getInput(inp).indexOf('@') == -1) {
-									this.error = 'Kindly provide a valid email address!';
-								}
-							} else if (type == "checkbox") {
-								fname = "boxes";
-								if (this.checkBox() === false) {
-									this.error = "Select a value from the " + fname + "!";
-								}
-							} else if (type == 'file') {
-								var min = inp.attr('min');
-								var max = inp.attr('max');
-								var fc = this.fileCheck(inp);
-
-								if (fc < min) {
-									this.error = "Minimum of " + min + " files is required!"
-								} else if (fc > max){
-									this.error = "Maximum of " + max + " files exceeded!";
-								}
-								return false;
-							}
-						}
-					}
-					// validation for select
-				} else if (t.find("select").length) {
-					var inp = t.find("select");
-					var fname = inp.prev("label").html();
-
-					if (inp.attr("data-val")) {
-						
-					} else {
-						if (this.empty(inp, true)) {
-							this.error = "Select a value from " + fname + "!";
-						}
-					}
-					// validation for textarea
-				} else if (t.find("textarea").length) {
-					var inp = t.find("textarea");
-					var fname = inp.prev("label").html();
-
-					if (inp.attr("data-val")) {
-						
-					} else {
-						if (this.empty(inp, true)) {
-							this.error = fname + "  field cannot be empty!";
-						}
-					}
-				}
-				if (this.error) {
-					return false;
-				}
-			});
-
-			if (this.error) {
-				this.pass = false;
-			} else {
+			if (!this.error) {
 				// check the form enctype here;
-				if (this.empty(ftype))
-					this.auto = $(fi).serialize();
-				else
-					this.auto = new FormData(fi);
-				
+				if (this.empty(ftype)) this.auto = $(this.form).serialize();
+				else this.auto = new FormData(this.form);
 			}
 		}
+		return this;
+	}
+
+	/* when using this method you are to validate the form inputs with the json param */
+	validateForm (form, rule, getInput = 1, e = 1) {
+		if (typeof form != "object") {
+			this.error = 'this method expects the (this) object as argument!';
+			return this;
+		}
+		this.form = form;
+		this.error = '';
+		
+		var f = this.form;
+		var ftype = $(f).attr("enctype");
+		var check = $(f).hasClass('validate-ignore');
+		
+		if (!check) {
+			// disable the form from being submitted while validation is going on 
+			this.disableBtn();
+
+			// get the rule keys and it json rules
+			var inputs = Object.keys(rule);
+			var rules = Object.values(rule);
+			
+			inputs.forEach((input, i) => {
+				this.loopForm(this.form, input, getInput, rules[i]);
+				if (this.error) {
+					if (e == 1) return;
+				}
+			});
+			// enable the btn
+			this.enableBtn();
+
+			if (!this.error) {
+				// check the form enctype here;
+				if (this.empty(ftype)) this.auto = $(this.form).serialize();
+				else this.auto = new FormData(this.form);
+			}
+		}
+		return this;
+	}
+
+	loopForm (f, inputID, getInput, json) {
+		$(f).children().each((i, tag) => {
+			var type = '';
+			if (getInput == 1) type = $(tag).attr('id');
+			else if (getInput == 2) type = $(tag).attr('class');
+			else if (getInput == 3) type = $(tag).attr('name');
+			
+			switch (tag.tagName) {
+				case 'INPUT':
+					if (inputID === type) this.validateJson(tag, this.getInputName(tag), json);
+				break;
+				case 'SELECT':
+					if (inputID === type) this.validateJson(tag);
+				break;
+				case "TEXTAREA": 
+					if (inputID === type) this.validateJson(tag);
+				break;
+				default:
+					if ($(tag).children().length > 1) this.loopForm(tag, inputID, getInput, json);
+				break;
+			}
+
+			if (this.error) return false;
+		});
+	}
+
+	validateJson (input, name, rule) {
+		if (!rule & !input) return false;
+		if (typeof rule != 'object') return false;
+		
+		// set the error to avoid the method giving error all the time;
+		this.error = '';
+
+		Object.keys(rule).forEach((r, i) => {
+			if (this.error) return this.error;
+			var con = this.getInput(input);
+			switch (r) {
+				case "required":
+					if (this.empty(con)) this.error = name + ' field can not be empty!';
+					break;
+				case "email":
+					if (con.indexOf('.') == -1 || con.indexOf('@') == -1) this.error = 'Kindly provide a valid email address!';
+					break;
+				case "number":
+					if (isNaN(con)) this.error = 'Enter a numeric value for ' + name + '!';
+					break;
+				case "wordcount":
+					var word = con.split(' ');
+					if (Object.value(r) > word.length) this.error = 'At least ' + rule[r] + ' word is required for ' + name;
+					break;
+				case "min":
+					if (typeof con == 'string')
+						if (con.length < rule[r]) this.error = 'Minimum of ' + rule[r] + ' chars is required for ' + name;
+					else if (typeof con == 'number')
+						if (con < rule[r]) this.error = name + ' should not be greater than ' + rule[r];
+					break;
+				case "max":
+					if (typeof con == 'string')
+						if (con.length > rule[r])this.error = 'Minimum of ' + rule[r] + ' chars is required for ' + name;
+					else if (typeof con == 'number')
+						if (con > rule[r]) this.error = name + ' should not be greater than ' + rule[r];
+					break;
+				case "match":
+					if (!this.checkMatch(input, $(rule[r]))) this.error = name + " do not match";
+					break;
+				case "checkbox":
+					if (this.checkBox(input) === false) this.error = 'Select a value from ' + name;
+					break;
+				case "file":
+					if (!this.fileCheck(input)) this.error = 'Kindly, select a file!';
+					break;
+				case "fileMin":
+					if (rule[r] > this.fileCheck(rule[r])) this.error = 'Minimum of ' + val[c] + ' files is required!';
+					break;
+				case "fileMax":
+					if (this.fileCheck(rule[r]) > rule[r]) this.error = 'Maximum of ' + rule[r] + ' files exceeded!';
+					break;
+			}
+			if (this.error) return this;
+		});
+	}
+
+	validateTag(form, e) {
+		$(form).children().each((i, tag) => {
+			// loop through the elements
+			switch (tag.tagName) {
+				case 'INPUT':
+					this.validateInput(tag);
+				break;
+				case 'SELECT':
+					this.validateSelect(tag);
+				break;
+				case "TEXTAREA": 
+					this.validateText(tag);
+				break;
+				default:
+					this.validateTag(tag, e);
+				break;
+			} 
+			if (this.error) {
+				if (e == 1) return false;
+			}
+		});
+	}
+
+	getInputName (inp) {
+		return $(inp).prev('label').html() || $(inp).next('label').html() || $(inp).attr('data-name') || $(inp).attr('name');
+	}
+
+	validateInput (inp) {
+		var name = this.getInputName(inp);
+		var check = $(inp).hasClass('validate-ignore');
+		if (!check) {
+			if ($(inp).attr("data-validate")) {
+				var json = $(inp).attr("data-validate");
+				json = JSON.parse(json);
+				this.validateJson(inp, name, json);
+			} else {
+				var type = $(inp).attr('type');
+				if (this.empty(inp)) this.error = name +" field cannot be empty!";
+				else if (type == 'file') this.error = "Select a file to upload in " + name + "!";
+				else {
+					if (type == "number" || type == "tel") {
+						if (isNaN(this.getInput(inp))) 
+							this.error = 'Enter a numeric value for ' + name + '!';
+					} else if (type == "email") {
+						if (this.getInput(inp).indexOf('.') == -1 || this.getInput(inp).indexOf('@') == -1)
+							this.error = 'Kindly provide a valid email address!';
+					} else if (type == "checkbox") {
+						name = "boxes";
+						if (this.checkBox(inp) === false) this.error = "Select a value from the " + name + "!";
+					} else if (type == 'file') {
+						var min = inp.attr('min');
+						var max = inp.attr('max');
+						var fc = this.fileCheck(inp);
+						
+						if (!this.empty(min) && !this.empty(max)) {
+							if (fc < min) this.error = "Minimum of " + min + " files is required!"
+							else if (fc > max) this.error = "Maximum of " + max + " files exceeded!";
+						}
+					}
+				}
+				if (this.error) this.pass = true;
+			}
+		}
+		return this;
+	}
+
+	validateSelect (inp) {
+		var name = this.getInputName(inp);
+		var check = $(inp).hasClass('validate-ignore');
+
+		if (!check) {
+			if ($(inp).attr("data-validate")) {
+				var json = $(inp).attr("data-validate");
+				json = JSON.parse(json);
+				this.validateJson(inp, name, json);
+				if (this.error) return;
+			} else {
+				if (this.empty(inp)) {
+					this.error = "Select a value from " + name + "!";
+				}
+			}
+			if (this.error) this.pass = true;
+		}
+		return this;
+	}
+
+	validateText (inp) {
+		var name = this.getInputName(inp);
+		var check = $(inp).hasClass('validate-ignore');
+
+		if (!check) {
+			if ($(inp).attr("data-validate")) {
+				var json = $(inp).attr("data-validate");
+				json = JSON.parse(json);
+				this.validateJson(inp, name, json);
+				if (this.error) return;
+			} else {
+				if (this.empty(inp)) {
+					this.error = name + "  field cannot be empty!";
+				}
+			}
+			if (this.error) this.pass = true;
+		}
+		return this
 	}
 
 	// this method accepts only json from the server
+	
+	/**
+	
+	this method
+	
+	@param info === string or html object element
+		in case you wanna use alert just use alert as an arg 'alert'
+	@param code === object {toSend, success} 
+		code to excute for $.ajax b4 and success 
+	@param msg === object {ok, data}
+		ok === message to show after successful request
+		msg === where to display ajax result;
+	@param r === redirection based on what the server is sending
+		the server could return with {redirect: no-redirect or to any location on the server}
+	*/
 
-	withAuto (info = '.info', msg = {ok: "Success!", data: ".result"}, r = '') {
+	withAuto (info = '.info', code = {toSend: false, success: false}, msg = {ok: "Success!", data: ".result"}) {
 		var ppt = {
 			data: this.auto,
 			beforeSend: () => {
+				(() => {
+					code.toSend
+				})();
 				if (info != "alert")
 					info.html('Connecting to the server...');
 				else
@@ -125,183 +292,119 @@ class Validate {
 				}
 			},
 			success: e => {
-				if (e.msg == 'ok') {
-					// to display notty
-					if (info != 'alert')
-						info.html(msg.ok).css({"color": "#36a509"});
-					else 
-						alert(msg.ok);
-					// ends
+				if (e.code) {
+					// checking options
+					// run code on success
+					(() => {
+						code.success
+					})();
+					// notify if alert or element
+					if (info != 'alert') info.html(e.msg).css({"color": "#36a509"});
+					else  alert(e.msg);
+					// ends 
+					
+					// if data is requested from the server
 					if (e.data) {
 						info.empty();
 						$(msg.data).html(e.data);
-					} else {
-						this.redirect(r);
 					}
+					
+					/* if the server issues a redirect in this case the server gives us 3 options
+						1 = noredirect
+						2 = true reload
+						3 = location
+					*/
+					if (e.redirect === true) this.redirect();
+					else if (e.redirect === 'noredirect') info.empty();
+					else if (e.redirect) this.redirect(e.redirect);
 				} else {
-					if (msg.err) {
-						if (info != 'alert')
-							info.html(msg.err).css({'color': '#d80808', 'font-style': 'oblique'});
-						else 
-							alert(msg.err);
+					// if the server does not send the error msg, fallback to default
+					if (!e.msg) {
+						if (info != 'alert') info.html(msg.err).css({'color': '#d80808', 'font-style': 'oblique'});
+						else alert(msg);
 					} else {
-						if (info != 'alert')
-							info.html(e.msg).css({'color': '#d80808', 'font-style': 'oblique'});
-						else
-							alert(e.msg);
+						// server returns with err msg
+						if (info != 'alert') info.html(e.msg).css({'color': '#d80808', 'font-style': 'oblique'});
+						else alert(e.msg);
 					}
 				}
 			},
-			error: e => {info.html(JSON.stringify(e)).css({'color': '#d80808', 'font-style': 'oblique'})}
+			error: e => {
+				if (e.status === 422) {
+					if (info == 'alert') alert(Object.values(e.responseJSON.errors)[0])
+					else  info.html(Object.values(e.responseJSON.errors)[0]).css({'color': '#d80808', 'font-style': 'oblique'});
+				} else if (e.status === 419)  {
+					if (info == 'alert') alert('Csrf token has expired, refresh the page.');
+					else  info.html('Csrf token has expired, refresh the page.').css({'color': '#d80808', 'font-style': 'oblique'})
+				} else if (e.status === 500)  {
+					if (info == 'alert') alert('Server error, contact Administrator!')
+					else  info.html('Server error, contact Administrator!').css({'color': '#d80808', 'font-style': 'oblique'});
+				} else if (e.status === 404) {
+					if (info == 'alert') alert('The requested uri cannot be found on this server!')
+					else info.html('The requested uri cannot be found on this server!').css({'color': '#d80808', 'font-style': 'oblique'});
+				}	
+			},
+			type: 'post'
 		}
-		
-		if (typeof v.auto == 'string')
-			$.ajax(ppt);
-		else
-			$.ajax(ppt = {...ppt, contentType: false, processData: false, cache: false});
+
+		if (typeof v.auto == 'string') $.ajax(ppt);
+		else $.ajax(ppt = {...ppt, contentType: false, processData: false, cache: false});
 	}
 
-	form(id, rules) {
-		var f = $(id).serializeArray();
-		this.error = this.pass = false;
+	disableBtn (form = '') {
+		if (form) $('#'+ form).find('button').attr('disabled', true);
+		$(this.form).find('button').attr('disabled', true);
+	}
 
-		f.forEach((d, i) => {
-			var rule = Object.keys(rules[i]);
-			var val = Object.values(rules[i]);
-			rule.forEach((r, c) => {
-
-				if (this.error) {
-					return this.error;
-				} else {
-					switch (r) {
-						case "require":
-							if (this.empty(d.value, true)) {
-								this.error = d.name + ' field can not be empty!';
-							}
-							break;
-						case "email":
-							if (d.value.indexOf('.') == -1 || d.value.indexOf('@') == -1) {
-								this.error = 'Kindly provide a valid email address!';
-							}
-							break;
-						case "number":
-							if (isNaN(d.value)) {
-								this.error = 'Enter a numeric value for ' + d.name + '!';
-							}
-							break;
-						case "wordcount":
-							var word = d.value.split(' ');
-							if (val[c] > word.length) {
-								this.error = 'At least ' + val[c] + ' word is required for ' + d.name;
-							}
-							break;
-						case "min":
-							if (d.value.length < val[c]) {
-								this.error = 'Minimum of ' + val[c] + ' chars is required for ' + d.name;
-							}
-							break;
-						case "max":
-							if (d.value.lengt > val[c]) {
-								this.error = 'Minimum of ' + val[c] + ' chars is required for ' + d.name;
-							}
-							break;
-						case "match":
-							if (!this.checkMatch(d.value, val[c])) {
-								this.error = "Password do not match!";
-							}
-							break;
-						case "checkbox":
-							if (this.checkBox() === false) {
-								this.error = 'Select a value!';
-							}
-							break;
-						case "file":
-							if (!this.fileCheck(d.value)) {
-								this.error = 'Kindly, select a file!';
-							}
-							break;
-						case "fileMin":
-							if (val[c] > this.fileCheck(d.value)) {
-								this.error = 'Minimum of ' + val[c] + ' files is required!';
-							}
-							break;
-						case "fileMax":
-							if (this.fileCheck(d.value) > val[c]) {
-								this.error = 'Maximum of ' + val[c] + ' files exceeded!';
-							}
-							break;
-					}
-				}
-			});
-		});
-		if (this.error == "") {
-			this.pass = true;
-		}
-
+	enableBtn (form) {
+		if (form) $('#'+ form).find('button').attr('disabled', false);
+		$(this.form).find('button').attr('disabled', false);
 	}
 
 	capFirst(str) {
 		return str.replace(str, str[0].toUpperCase());
 	}
-
-	captcha(str) {
-		var inp = "<div><div class='captcha'> " + str + "</div><input name='captcha' placeholder='Robot?' type='text' class='input-line'></div>";
+	/* type 
+		1 for id default
+		2 for class
+		3 for name
+	*/
+	getInput(input, type = false) {
+		var inp = false;
+		if (typeof input == 'string') {
+			if (type == 1) inp = $('#'+ input).val() || $('#'+ input).html()
+			else if (type == 2) inp = $('.'+ input).val() || $('.'+ input).html();
+			else if (type == 3) inp = $('[name='+ input + ']').val() || $('[name='+ input + ']').html();
+		} else if (typeof input == 'object') inp = $(input).val();
+		else inp = input;
 		return inp;
 	}
 
-	getInput(input) {
-		return $(input).val();
+	empty(item) {
+		if (typeof item == 'object') return this.empty(this.getInput(item));
+		else if (typeof item == 'string')  {
+			if (item === undefined || item === null || item.length === 0) return true;
+			else if (item.trim().length === 0) return true;
+			else return false
+		} else if (typeof item == 'number') return getInput(item);
+		else return true;	
 	}
 
-	empty(handler, c = false) {
-		if (c) {
-			var i = this.getInput(handler);
-
-			if (typeof i == 'string') {
-				if (i == null || i == undefined) {
-					return true;
-				} else if (i.trim().length == 0) {
-					return true;
-				} else {
-					return false;
-				}
-			} else {
-				i.forEach( e => {
-					if (e == null || e == undefined) {
-						return true;
-					} else if (e.trim().length == 0) {
-						return true;
-					} else {
-						return false;
-					}
-				});
-			}
-		} else {
-			if (handler == undefined || handler == null || handler.length == 0) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
-
-	checkBox() {
-		if (this.empty($('input:checkbox:checked').val())) {
-			return false;
-		} else {
-			return true;
-		}
+	checkBox(el) {
+		if (!el) this.error = 'No input specified for checkBox';
+		if ($(el).prop('checked')) return true;
+		else return false;
 	}
 	
-	redirect(loc = '') {
+	redirect(loc = '', delay = 2000) {
 		if (loc === '') {
 			setTimeout(() => {
 				location.reload();
-			}, 1000);
+			}, delay);
 		} else {
 			setTimeout(() => {
 				location = loc;
-			}, 1000);
+			}, delay);
 		}
 	}
 
@@ -325,74 +428,36 @@ class Validate {
 	}
 
 	checkMatch(field, toMatch) {
-		var field = this.getInput(field);
-		var toMatch = this.getInput(toMatch);
+		field = this.getInput(field);
+		toMatch = this.getInput(toMatch);
 
-		if (field === toMatch) {
-			return true;
-		}
-		return false;
+		if (field === toMatch) return true;
+		else return false;
 	}
 
 	fileCheck(field) {
-		try{
 		var f = $(field).get(0).files.length;
-}catch(e){
-	this.dError(e, true);
-}
-		if (f) {
-			return f;
-		}
+		if (f) return f;
 		return false;
 	}
 
-	thrower() {
+	err () {
 		return this.error;
 	}
 
-	check() {
-		return this.pass;
+	toggleActive (obj) {
+		$(obj).addClass('active').siblings().removeClass('active');
 	}
 
-	dError(val, c = false) {
-		if (c) {
-			alert(JSON.stringify(val));
-		} else {
-			try {
-				val
-			} catch (e) {
-				this.dError(e, true);
-			}
-		}
+	tabToggle (obj, cls = 'tab-items') {
+		var id = $(obj).attr('href');
+		$('.' + cls).children(id).show().siblings().hide();
 	}
 
-	connect(form, info, msg = {}, load = '', r = '') {
-		// stop();
-		var info = $(info);
-		var ppt = {
-			data: $(form).serialize(),
-			beforeSend: () => {
-				info.html(load + 'Connecting to the server...');
-			},
-			success: e => {
-				alert(e);
-				if (e == 'ok') {
-					info.html(msg.ok);
-					this.redirect(r);
-				} else {
-					if (msg.error) {
-						info.html(msg.error);
-					} else {
-						if (msg.error) {
-							info.html(msg.error);
-						} else {
-							info.html(e)
-						}
-					}
-				}
-			}
-		}
-		$.ajax(ppt);
+	dError(val) {
+		alert(JSON.stringify(val));
 	}
 }
 var v = new Validate();
+
+// $.fn.validate = new Validate();

@@ -1,201 +1,163 @@
-try{
 (function () {
 	var loc = $(location).attr('href').split('/')[3];
-	
-	if (loc  != 'login' && loc == false)
-		$(".owl-carousel").owlCarousel({
-	    autoplay: true,
-	    dots: true,
-	    loop: true,
-	    items: 1,
-	  });
-	
+
 	/* default js */
 	$.ajaxSetup({
 		url: 'ajax',
 		dataType: 'json',
 		type: 'post'
 	});
-	
+
 	$('input, select, textarea').on({
-        'mouseover': function(){
-            $(this).prev('label').slideDown(500);
-        },
-        'keyup': () => {
-            $(this).prev('label').slideDown(500);
-        }
-    });
-
-	$(".auth a").click(function(e) {
-		e.preventDefault();
-		var id = $(this).attr("class");
-
-		$('.info').empty();
-		$(".auth-content #" + id).show().siblings("div").hide();
-	});
-
-	$(".auth form").submit(function (e) {
-		e.preventDefault();
-
-		var info = $('.info');
-		v.autoForm(this);
-
-		if (!v.check()) {
-			info.html(v.thrower()).css({'color': '#b28200', 'font-style': 'oblique'});
-		} else {
-			$.ajax({
-				data: v.auto,
-				beforeSend: () => {
-					info.html("Connecting to the server...");
-				},
-				success: e => {
-					info.empty();
-
-					if (e.msg == 'ok') {
-						$(this).children('#captcha').empty();
-						info.html('You are logged!').css({"color": "#36a509"});
-						v.redirect(e.type);
-					} else if (e.msg == 'captcha') {
-						$(this).children('#captcha').html(e.captcha);
-					} else if (e.msg == "change") {
-						$('.auth .info').empty();
-						$(".auth-content #chpwd").show().siblings().hide();
-						$('#chpwd .days').html("Its been <b>" + e.days + "days</b> since you last change your password!");
-					} else {
-						info.html(e.msg).css({'color': '#d80808', 'font-style': 'oblique'});
-					}
-				},error: e => {v.dError(e, true)}
-			});
+		'mouseover': function () {
+			$(this).prev('label').slideDown(500);
+		},
+		'keyup': () => {
+			$(this).prev('label').slideDown(500);
 		}
 	});
-
-	$('.skip').click(function(e) {
-		e.preventDefault();
-
-		v.redirect('/index');
-	});
-	
+	var csrf = $('#__csrf').val();
 	/* ends here */
-	
+
 	// nav control
-	
-	$('.search, #search .close').click(function(e) {
+
+	$('.search, #search .close').click(function (e) {
 		e.preventDefault();
 
 		$('#search, .links').toggle();
 	});
-	$('.dp-menu').click(() => {
 
-		if ($('.dp-menu').hasClass('active')) {
-			$('.dp-link').css({'margin-left': 0}).show();
+	function closeMenu() {
+		$('.dp-link').css({ 'margin-left': '-50rem' });
 
-			$('.dp-menu').removeClass('active');
-			$('.container').css({
-				'margin-left': '10rem'
-			});
-			$('footer').css({
-				'margin-left': '10rem'
-			});
+		$('.container, footer').css({
+			'margin-left': 'auto'
+		});
+	}
+
+	function openMenu() {
+		$('.dp-link').css({ 'margin-left': '0rem' });
+		$('.container, footer').css({
+			'margin-left': '12rem'
+		});
+	}
+
+	if (location.pathname == '/admin') openMenu();
+
+	$('.dp-menu').click(function () {
+		if ($(this).hasClass('active')) {
+			$(this).removeClass('active');
+			closeMenu();
 		} else {
-			$('.dp-link').hide();
-
-			$('.dp-menu').addClass('active')
-			$('.container, footer').css({
-				'margin-left': 'auto'
-			});
+			$(this).addClass('active');
+			openMenu();
 		}
+	});
+
+	$('.dp-link a').click(function () {
+		$(this).addClass('active').siblings().removeClass('active');
 	});
 
 	// all form submittion goes here
-	
+
 	$('.action form').submit(function (e) {
-		e.preventDefault();
-		var i = $(this).children('div').children('.info');
+		if (!$(this).hasClass('ignore')) {
+			e.preventDefault();
+			var i = $(this).children('div').children('.info');
+			if ($(this).parent("div").attr('id') != 'chpwd') v.autoForm(this);
+			else
+				v.validateForm(this, {
+					'new-password': {
+						required: true,
+					},
+					'verify-password': {
+						required: true,
+						match: '#new-password'
+					}
+				});
 
-		if ($(this).parent("div").attr('id') != 'chpwd') {
-			v.autoForm(this);
-
-			if (!v.check()) {
-				i.html(v.thrower());
-			} else {
-				if (!$(this).hasClass('ignore'))
-					v.withAuto(i, {data: $(this).next('div')});
-				else
-					e.currentTarget.submit();
-			}
+			if (v.err()) i.html(v.err());
+			else v.withAuto(i, { data: $(this).next('div') });
 		}
 	});
 
-	$('.report form').change(function(e) {
+	$('.report form').change(function (e) {
 		e.preventDefault();
 
 		var info = $('.info');
 		v.autoForm(this);
-		if (!v.check()) {
-			info.html(v.thrower());
+		if (v.err()) {
+			info.html(v.err());
 		} else {
-			v.withAuto(info, {data: '.result'});
+			v.withAuto(info, { data: '.result' });
 		}
 	});
 
 	// setting events
-	
-	$('.check2radio').click(function(e) {
-		if ($(this).hasClass('active')) {
-			$(this).children().removeClass('active').prop('checked', false);
+
+	$('.events, .custom-control-radio').click(function (e) {
+		if ($(this).val()) {
+			/* // for input clicks
+			$(this).parent().addClass('bl').siblings().removeClass('active');
+			if ($(this).parent().hasClass('active'))
+				$(this).prop('checked', false);
+			else
+				$(this).prop('checked', true); */
 		} else {
-			$(this).addClass('active').children('input').prop('checked', true);
-			$(this).siblings('div').removeClass('active').children('input').prop('checked', false);
+			// for div
+			$(this).addClass('active').siblings().removeClass('active');
+			$(this).children('input').prop('checked', true);
+			// console.log($(this).children('input'))
+			$(this).siblings().children('input').prop('checked', false);
 		}
+	});
+
+	$('form.others').change(function () {
+		v.autoForm(this);
+
+		if (v.err()) alert(v.err());
+		else v.withAuto('alert');
+	});
+
+	$('.list').click(function (e) {
+		if ($(this).hasClass('bl')) $(this).removeClass('bl').find('input').prop('checked', false)
+		else $(this).addClass('bl').find('input').prop('checked', true);
 		
-		// setting event 
-			
-			var p = $(this).parent('form');
-			var i = $(p).children('div').children('.info');
-			v.autoForm(p);
-	
-			if (!v.check()) {
-				alert(v.thrower());
-			} else {
-				v.withAuto(i);
-			}
 	});
 
-	$('.list').click(function(e) {
-		if ($(this).hasClass('bl')) {
-			$(this).removeClass('bl').children('input').prop('checked', false)
-		} else {
-			$(this).addClass('bl').children('div').children('input').prop('checked', true);
-		}
-	});
-	
-	if (loc.indexOf('class') != -1) {
-		$('.students').show().siblings().hide();
-	}
+	if (loc.indexOf('class') != -1) $('.students').show().siblings().hide();
 
+	var added = false;
 	$('a.details').click(function (e) {
 		e.preventDefault();
 		var data = $(this).attr('href').split("/");
 		$.ajax({
-			data : {profile: data[1], acc: data[0]},
+			data: { profile: data[1], acc: data[0], __csrf: csrf },
 			beforeSend: () => {
-				$('.hidden').css({display: 'grid'});
-			}, 
+				$('.hidden').show();
+				if (!added)
+					$('.profile').append(`
+					<div class="loader">
+						<div class="ring green icofont-spin"></div>
+						<div class="ring blue icofont-spin"></div>
+					</div>`);
+					added = true;
+			},
 			success: e => {
-				if (e.msg == "ok") {
-					$('.profile').append(e.payload);
-				} else {
-					alert(e.msg);
-				}
+				$('.loader').remove();
+				if (e.code) $('.profile').append(e.payload);
+				else alert(e.msg);
 			}
 		});
 	});
 
 	$('.delete-event').click(function () {
 		$.ajax({
-			data : {type: 'delete-event', id: $(this).attr('id')},
+			data: { type: 'delete-event', id: $(this).attr('id'), __csrf: csrf},
+			dataType: 'json',
+			beforeSend: () => { alert("cpnnecting") },
 			success: e => {
-				if (e.msg == "ok") {
+				if (e.code) {
 					alert("Event deleted!");
 					v.redirect();
 				} else {
@@ -203,46 +165,49 @@ try{
 				}
 			}
 		});
-	})
+	});
 
 	// closing the profile tab
 
 	$('.profile .close').click(() => {
-		$('.profile .close').next("div.header").remove();
+		$('.profile .close').next(".fetch").remove();
 		$('.hidden').hide();
 	});
 
-	$('a.edit').click(function(e) {
+	$('a.edit').click(function (e) {
 		e.preventDefault();
 
 		var tt = $(this).attr("href").substring(1);
 		$('.action').children('.' + tt).show().siblings('div').hide();
 	});
 
-	$('.classes').change(function(e) {
+	$('.classes').change(function (e) {
 		var val = $(this).val();
 
 		if (typeof val == 'string') {
 			if (val.substring(0, 3) == "Sss" || val.substring(0, 7) == "Promote")
-				$(this).parent("div.form-group").next('div').css({display: 'block'});
-			else 
-				$(this).parent("div.form-group").next('div').css({display: 'none'});
+				$(this).parent("div.form-group").next('div').css({ display: 'block' });
+			else
+				$(this).parent("div.form-group").next('div').css({ display: 'none' });
 		} else {
 			val.forEach(e => {
 				if (e.substring(0, 3) == "Sss" || val.substring(0, 7) == "Promote")
-					$(this).parent("div.form-group").next('div').css({display: 'block'});
-				else 
-					$(this).parent("div.form-group").next('div').css({display: 'none'});
+					$(this).parent("div.form-group").next('div').css({ display: 'block' });
+				else
+					$(this).parent("div.form-group").next('div').css({ display: 'none' });
 			});
 		}
 	});
-	
+
 	// setting  question
-	
-		$('#set').keyup(() => {
+
+	var btn = false;
+	$('#set').keyup(() => {
 		$('.form-question').empty();
 		var num = v.getInput('#set');
 		var c = 1;
+		if (num > 50) num = 50;
+
 		for (var i = 0; i < num; i++) {
 			$('.form-question').append('<div class="h4 my-3">Question ' + c + '</div><div class="form-group">\
 						<label for="question-' + c + '">Question</label>\
@@ -275,7 +240,9 @@ try{
 						<input type="text" name="opt_d[]" id="opt-d-' + c + '" class="form-control" placeholder="Enter option..." autocomplete="off">\
 					</div><hr/>');
 			if (c == num) {
-				$('.form-question').append('<div class="form-group"><div class="info"></div><button class="btn btn-success">Submit</button></div>');
+				if (!btn) {
+					$('#exam-form').append('<div class="form-group"><button class="btn btn-success">Submit</button></div>'); btn = true;
+				}
 			}
 			c++;
 		}
@@ -290,48 +257,61 @@ try{
 		if (chk) {
 			v.autoForm(this);
 
-			if (!v.check())
-				alert(v.thrower());
+			if (v.err())
+				alert(v.err());
 			else
-				v.withAuto('alert', {ok: "Picture changed successfully"});
+				v.withAuto('alert', { ok: "Picture changed successfully" });
 		}
 	});
-	
-	$('.contact .item, .contact .h3').on({
-		'mouseover': function() {
-			$(this).prev('.h3').children('i').addClass('radi');
-		},
-		'mouseleave': function () {
-			$(this).prev('.h3').children('i').removeClass('radi');
-		}
-	});
-	
+
 	// fees 
-	
-	$('.progress-tab form').submit(function(e) {
+
+	$('.progress-tab form').submit(function (e) {
 		e.preventDefault();
-		
+
 		var i = $(this).children('.form-group').children('.info')
 		v.autoForm(this);
-		
-		if (!v.check()) {
-			i.html(v.thrower());
+
+		if (v.err()) {
+			i.html(v.err());
 		} else {
 			v.withAuto(i);
 		}
 	});
-	
+
 	// animation {}
-	
-	 var sw = $(window).innerWidth();
-		if  (sw < 512) {
-			$('.list-item.wow').addClass('animate__bounceInUp');
+
+	var sw = $(window).innerWidth();
+	if (sw < 512) {
+		$('.list-item.wow').addClass('animate__bounceInUp');
 	} else {
 		$('.wow').removeClass('slideInLeft').removeClass('slideInRight').addClass('animate__flipInX');
 	}
-	
+
 	// loader
 	setTimeout(() => {
 		$('.load').slideUp(500);
 	}, 3000);
-})(jQuery);}catch(a){alert(a)}
+
+
+	// printing job 
+
+	function printer(val) {
+		var a = window.open('', 'print', 'height=500, width=500');
+		a.document.write('<html>');
+		a.document.write('<body>');
+		a.document.write(val);
+		a.document.write('</body></html>');
+		a.document.close();
+		a.focus();
+		a.print();
+	}
+
+
+	$('.job').click(function () {
+		var item = $('.print-item').html();
+		var c = confirm('Do you want to continue the print operation?');
+
+		if (c) printer(item);
+	});
+})(jQuery);

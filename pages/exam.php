@@ -1,82 +1,78 @@
 <?php
-require_once "Autoload.php";
+authCheck('/login');
+$u = session('student');
+if ($u->active == 1) redirect('student');
 
-if (!Session::check("user"))
-	Redirect::to("/login");
+$user = authId();
+$cls = $u->class;
+$sss = session('session');
+$dept = $u->dept;
+$title = 'Exam center';
 
-if (Session::get("active") == 1) 
-	Redirect::to("student");
+require_once 'inc/header.php';
 
-$user = Session::get("user");
-$cls = Session::get("class");
-$sss = Session::get("session");
-$dept = Session::get("dept");
+$exam = session('exam');
 
-$title = "Exam center";
-require_once "inc/header.php";
-
-$e = new Easy();
-$e->table("event");
-$echeck = $e->fetch(["id", "content", "type"], ["type", "exams"])->exec(1);
-
-if(time() >= @strtotime($echeck->content)):
+if(time() >= strtotime($exam)):
 	// getting data from attendance if the student have sat for an exam b4 for the given session
-	$e->table("attendance");
-	$e->concat(["and", "and"]);
-	$data = $e->fetch(["subject"], ["a_id", $user], ["session", $sss], ["sit", 0])->exec(1);
-
-	$e->table("exam");
-	if ($e->count()) {
+	$d = Db::instance();
+	$data = $d->table('attendance')->get(['subject'])->where(['a_id', $user], ['session', $sss], ['sit', 0])->res(1);
+	
+	$d->table('exam');
+	if ($d->count()) {
 		// if yes get the next exam on the list
 		$subject = $data->subject;
-		$e->fetch(
-			["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], 
-			["class", $cls],
-			["subject", $subject]
+		$d->get()
+		->where( 
+			['class', $cls],
+			['subject', $subject]
 		);
 	} else {
 		// if not then get the first exam from the database;
-		$e->fetch(
-			["question", "opt_a", "opt_b", "opt_c", "opt_d", "subject"], 
-			["class", $cls]
-		);
+		$d->get()
+		->where(['class', $cls]);
 	}
 	
-	$data = $e->exec(1);
+	$data = $d->res(1);
 
-	if($data):
+	if ($data):
   
 	$r = $data;
-	Session::set("subject", $r->subject);
-	$q = explode("___", $r->question);
-	$a = explode("___", $r->opt_a);
-	$b = explode("___", $r->opt_b);
-	$c = explode("___", $r->opt_c);
-	$d = explode("___", $r->opt_d); 
+	session('subject', $r->subject);
+	$q = explode('***EXAM***', $r->question);
+	$a = explode('***EXAM***', $r->opt_a);
+	$b = explode('***EXAM***', $r->opt_b);
+	$c = explode('***EXAM***', $r->opt_c);
+	$d = explode('***EXAM***', $r->opt_d); 
+	$t = $r->time_allowed;
 
-	$all = Utils::json(["question" => $q, "a" => $a, "b" => $b, "c" => $c, "d" => $d]);
+	$all = Utils::json(['question' => $q, 'a' => $a, 'b' => $b, 'c' => $c, 'd' => $d]);
 ?>
-<div class="exam col-sm-8 col-md-8 p-5">
+<div class='exam col-sm-8 col-md-8 p-5 mx-auto'>
 	<script src="assets/js/timezz.js"></script>
-<script>
-			var date = new Date();
-			var toStop = date.setHours(date.getHours() + 1);
-			var cl = timezz('.timer', {
-		    date: toStop
-		 });
+	<script>
+		var time = <?php echo $t ?>;
+		var date = new Date();
+		var toStop = date.setMinutes(date.getMinutes() + time);
+		var cl = timezz('.timer', {
+			date: toStop
+		});
 	</script>
-	<div class="col-10">
-		<div class="timer mt-3" id="">
+	<div class="text-center">
+		<h1>DiamondVille</h1>
+		<h4>Comprehensive School</h4>
+		<h5>Examination Portal</h5>
+		<div class="mt-3">
+			<h4><?php echo $r->subject; ?></h4>
+		</div>
+		<div class="timer my-5" id="">
 			<div class="p-2" data-hours></div>
 			<div class="p-2" data-minutes></div>
 			<div class="p-2" data-seconds></div>
 		</div>
 	</div>
-	<div class="my-3">
-		<h3><?php echo $r->subject ?></h3>
-		<small></small>
-	</div>
-	<div class="e-question mb-3"><span></span></div>
+	<h4 class="text-center"><small class="count"></small></h4>
+	<div class="e-question my-5"><span></span></div>
 	
 	<div class="option">
 		<div class="e-a mb-3" id="e-a"><input accesskey="a" name="opt_a" value="A" type="checkbox"> A. <span></span></div>
@@ -95,24 +91,33 @@ if(time() >= @strtotime($echeck->content)):
 </script>
 <script src="assets/js/exam.js"></script>
 <style type="text/css">
-	.active {
+	  .active {
 		padding: 10px;
 		border-left: 3px solid var(--pry);
 		box-shadow: 1px 1px 2px var(--pry);
 	}
-
 	.e-question {
 		padding: 10px;
 		border-left: 3px solid var(--hover);
 		word-spacing: 5px;
 		box-shadow: 1px 1px 2px var(--hover);
 	}
-
 	.e-question::first-letter{
 		text-transform: capitalize;
 	}
+	nav, footer {
+		display: none !important;
+	}
+	.container {
+		margin: 0;
+		padding: 0;
+		width: 100%;
+	}
+	h1 {
+		color: var(--pry);
+	}
 </style>
-<?php else: ?>
+<?php csrf(); else: ?>
 <h1 class="my-4">No exam!</h1>
 <?php
 endif;
@@ -125,7 +130,7 @@ else:
 <!-- <div class="menu">
 	<a href="student.php">Home</a>
 	<div class="subject">
-	<?php if(!empty($data)): 
+	<?php /*if(!empty($data)): 
 	foreach($data as $sub):
 		foreach($sub as $key => $val):
 			if($val == 1):
@@ -135,7 +140,7 @@ else:
 			endif;
 		endforeach;
 	endforeach;
-	endif;?>
+	endif;*/?>
 	</div>
 </div>
 <div class="toggler-menu">
@@ -148,12 +153,12 @@ else:
 <?php
 // marking attendance upon seeing the exam
 /*if (@$r) {
-	$e->table("attendance");
+	$e->table('attendance');
 	
-	$e->set(["sit"], [1])
-	->concat(["and", "and"])
-	->where(["session", $sss], ["a_id", $user],["subject", "$r->subject"])
+	$e->set(['sit'], [1])
+	->concat(['and', 'and'])
+	->where(['session', $sss], ['a_id', $user],['subject', '$r->subject'])
 	->exec();
 }
 */
-require_once "inc/footer.php";
+require_once 'inc/footer.php';

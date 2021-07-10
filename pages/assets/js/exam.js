@@ -14,8 +14,8 @@
 	$('.e-b span').html(b[0]);
 	$('.e-c span').html(c[0]);
 	$('.e-d span').html(d[0]);
-	$('.my-3 small').text('Question No. ' + next +' of ' + count);
-	
+	$('h4 small').text('Question ' + next +' of ' + count);
+
 	$('.control-btn button').click(function () {
 		var val = $('.option input:checkbox:checked').val();
 		if(!v.empty(val)){
@@ -34,24 +34,16 @@
 			$('.option div').removeClass('active');
 
 			// this insert all checked option into an array
-			if (arr.length != count) {
-				arr.push(val);
-			}
+			if (arr.length != count) arr.push(val);
 
 			if (arr.length == count) {
 				$(this).html("Submit");
 				var con = confirm('You are about to submit!');
-				if (con) {
-					ajaxReq();
-				}
+				if (con) ajaxReq();
 			}
-			if (next != count) {
-				next++;
-			}
-
-			$('.my-3 small').text('No ' + next +' of ' + count);
-			if (next == count)
-				$(this).html("Submit");
+			if (next != count) next++;
+			$('h4 small').text('Question ' + next +' of ' + count);
+			if (next == count) $(this).html("Submit");
 		} else {
 			info.html('Select an answer!');
 		}
@@ -68,8 +60,8 @@
 	// make sure to change the time of auto submit
  setTimeout(() => {
  		alert('Time up!');
- 		ajaxReq();
- }, 60 * 60 * 1000);
+ 		// ajaxReq();
+ }, 60 * time * 1000);
 	
 /*
 var isSubmitting = false
@@ -90,21 +82,20 @@ $(window).on('beforeunload', function() {
 	
 	function ajaxReq() {
 		$.ajax({
-			data: {'exam-ans': arr, type: 'exam-submit'},
+			data: {'exam-ans': arr, type: 'exam-submit', '__csrf': $('#__csrf').val()},
 			dataType: 'json',
 			beforeSend: () => {
 				info.html('Connecting to the server...');
 			},
 			success: e => {
-				if (e.msg == 'ok') {
+				info.html(e.msg);
+				if (e.code) {
 					info.html("Submitted");
 					v.redirect();
-				} else {
-					info.html(e);
 				}
 			},
-			error: e => {v.dError(e, true)
-				info.html(e);
+			error: e => {
+				v.dError(e)
 			}
 		});
 	}

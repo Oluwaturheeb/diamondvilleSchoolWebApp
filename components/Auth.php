@@ -1,151 +1,166 @@
 <?php
 
-class Auth extends Validate {
-	private $_e, $_log;
-	public $result;
-	
-	public function __construct () {
-		$this->_e = new Easy();
-		$this->_e->table("auth");
+class Auth {
+	private $_e;
+	public $table;
+
+	public function __construct ($table = 'auth') {
+		$this->_e = Db::instance();
+		$this->table = $table;
+		$this->_e->table($this->table);
+	}
+
+	private static function trackLogin () {
+		if (!session('trackLogin')) session('trackLogin', 0);
+		
+		if (session('trackLogin') >= config('auth/login_attempts')) {
+			if (!session('trackLogin2')) sleep(5);
+
+			if (session('trackLogin2') >= config('auth/login_attempts')) {
+				if (!session('trackLogin3')) sleep(10);
+
+				if (session('trackLogin3') >= config('auth/login_attempts')) {
+					sleep(60);
+					res(['code' => 0, 'error' => 'Too many login attempts!']);
+				} else session('trackLogin3', session('trackLogin3') + 1);
+			} else session('trackLogin2', session('trackLogin2') +1);
+		} else session('trackLogin', session('trackLogin') +1);
 	}
 	
-	protected function cap () {
-		// checking for login attempts if enabled
-		if (Config::get("auth/login_attempts") > 0) {
-			if (!Session::check("count")) {
-				Session::set("count", 1);
-			} else {
-				if (Session::get("count") >= Config::get("auth/login_attempts")) {
-					if (Session::check("cap")) {
-						$cap = Session::get("cap");
-					} else {
-						$cap = substr(Utils::gen(true), 0, 5);
-						Session::set("cap", $cap);
+	public function login ($col = 'email', $password = 'password', $remember = false,  $lastActiveColumn = '') {
+		// login protection 
+		$this->trackLogin();
+
+		// default msg 
+		$res = ['code' => 0, 'msg' => 'Credentials does not match any account!'];
+
+		$d = $this->_e->get();
+		if (is_array($col)) $d->orWhereManyToOne($col, req($col[0]));
+		else $d->where([$col, req($col)]);
+
+		$log = $d->res();
+		
+		if ($d->count()) {
+			foreach ($log as $k) {
+				if  ($k->$password) {
+					if (password_verify(req($password), $k->$password)) {
+						session('auth', $k);
+						session('authId', $k->id);
+						if ($lastActiveColumn)
+							$this->updateLogin(session('authId'), $lastActiveColumn);
+
+						if ($remember)
+							setCookies('authId', session('auth')->id, $remember);
+
+						$res = ['code' => 1, 'msg' => 'You are logged!'];
+						break;
 					}
-					$this->addError(["msg" => "captcha","captcha" => $cap]);
-				} else {
-					$c = Session::get("count");
-					$c ++;
-					Session::set("count", $c);
 				}
 			}
-			return $this;
 		}
-	}
-	
-	public function login ($cols = []) {
-		//check if there there is captcha
-		$d = $this->_e;
-		$id = ["id"];
 		
-		if (Config::get("auth/last_pc") > 0) 
-			$id[] = "datediff(now(), last_pc) as days";
-			
-		if (!Config::get("auth/single"))
-			$id[] = "type";
-			
-		$this->_log = $this->result = $d->fetch($id)->with("remove", ["type", "password"])->with("append", ["password"], [$this->hash(lcfirst($this->fetch("password")))])->exec(1);
+		return $res;
+	}
+	
+	public function reg ($password = 'password', bool $login = true) {
+		$c = new Crud($this->table);
+		$id = $c->create()
+		->remove([$password])
+		->append([$password], [self::password(req($password))])
+		->exec();
 
-		if ($d->error()) {
-			$this->addError($d->error());
+		if (!$c->count() && $c->error()) {
+			return ['msg' => 'There is an account with that email address!', 'code' => 0];
 		} else {
-			if (!$this->_log) {
-				$this->addError("Credentials does not match any account!");
+			if ($login == true) {
+				$log = $this->_e->get()->where($id)->res(1);
+				session('auth', $log);
+				session('authId', $log->id);
 			}
-		}
-		return $this;
-	}
-	
-	public function reg ($cols = []) {
-		$d = $this->_e;
-		$this->_log = $this->result = $d->create()->with("remove", ["type"])->exec(1);
-		if ($d->error()) {
-			$this->addError($d->error());
-		} else {
-			if (!$this->_log) {
-				$this->addError("There is an account with that email address!");
-			}
-		}
-		return $this;
-	}
-	
-	public function set ($ses = "user") {
-		if ($this->error()) {
-			$msg = $this->error();
-			if (is_array($msg))
-				return $msg;
-			else
-				return ["msg" => $msg];
-		} else {
-			if ($this->_log) {
-			//register
-				if (is_numeric($this->_log)) {
-					Session::set($ses, $this->_log);
-					$msg = "ok";
-				} else {
-					// login
-					Session::set($ses, $this->_log->id);
-					$msg = "ok";
-					if(!Config::get("auth/single"))
-						$type = $this->_log->type;
-					
-					// checking password change option
-					
-					if (Config::get("auth/last_pc") > 0)
-						if($this->_log->days > Config::get("auth/last_pc")) {
-							$msg = "change";
-							$days = $this->_log->days;
-						}
-					return ["msg" => $msg, "days" => @$days, "type" => @$type];
-				}
-			}
+			return ['code' => 1, 'msg' => 'Registration completed!'];
 		}
 	}
 	
-	public function chpwd ($ses = "user") {
-		$d = $this->_e;
-		if($this->error()) {
-			if (is_array($this->_error()))
-				return $this->_error;
-			else
-				return ["msg" => $this->error()];
-		} else {
-			$this->validator($_POST, [
-				"password" => ["match" => "verify"]
-			]);
+	// supply both field names in an array
+	// db field name and verify field name
+	// provide the email to change its password or the id of the account
+	public function chpwd (array $field = [], $email = '', $compare = true) {
+		// $this->trackLogin();
+		$msg = ['code' => 0, 'msg' => 'Invalid password supplied!'];
+		if ($compare) {
+			if (count($field) !== 2) return $msg;
+			else {
+				$v = new Validate();$v->validator(req(), [
+					$field[0] => ['match' => $field[1]]
+				]);
+				
+				if ($v->error()) return ['code' => 0, 'msg' => $v->error()];
+			}
+		}
+			
 
-			if ($this->error()) {
-				return ["msg" => $this->error()];
+		$c = new Crud($this->table);
+		$c->update()->remove();
+
+		if (count($field) == 1) $c->append($field, [req($field[0])]);
+		else $c->append([$field[0]], [$this->password(req($field[0]))]);
+
+		$c->where($email)->exec();
+
+		return ['code' => 1, 'msg' => 'Password updated successfully!'];
+	}
+	
+	public function lpass ($path = '') {
+		$this->trackLogin();
+		$c = new Crud($this->table);
+		$user = $c->fetch()->exec();
+
+		if ($c->error() || !$c->count()) {
+			res(['code' => 0, 'msg' => 'Email does not match any account, try again!']);
+		} else {
+			// No verification
+			if (!$path) {
+				res(['code' => 1, 'msg' => 'Account found!']);
 			} else {
-				$d->update(Session::get("user"))->with("remove")->with("append", ["last_pc", "password"], ["now()", $this->hash($this->req("password"))])->exec();
-				if ($d->error()) 
-					return ["msg" => $d->error()];
-				else 
-					return ["msg" => "ok"];
+				// send email with Xender+++
+				$m = (new Xender())->sendTo(req('email'))->sub('Password recovery')->desc('Password recovery')->send($path, config('mail/from'));
+
+				if ($m) res(['code' => 1, 'msg' => 'Email has been sent!']);
+				else res(['code' => 0, 'msg' => 'Unknown error, contact administrator']);
 			}
 		}
 	}
 	
-	public function lpass () {
-		$d = $this->_e;
-		list($col, $val) = $this->val_req();
-		print_r($col);
-		$res = $d->get($col[0])
-		->where([$col[0], $val[0]])
-		->res();
-		
-		print_r($res);
-		
-		/*if ($d->error() || !$d->count()) 
-			$this->addError("Email does not match any account, try again!");
+	public static function authId() {
+		return session('authId');
+	}
+	
+	public static function auth($data = '') {
+		if ($data)
+			return (isset(session('auth')->$data) ? session('auth')->$data : false);
+		else
+			return session('auth');
+	}
 
-		$token = Utils::gen();
-		$dom = Config::get("session/domain");
-		$time_exp = time() + 60 * 60 * 30;
-		$time = time("d-M-y h:m:i", $time_exp);
-
-		/*mail($d[0]->email, "Password recovery", "click <a href='$dom/fpass/$token'>here</a> this link expires $time");
-		$msg = mail(to, subject, message);
-		echo $msg;*/
+	private static function password ($password) {
+		if (config('auth/password_type') === 'default') return Validate::hash($password);
+		else return config('auth/password_type')($password);
+	}
+	
+	private function updateLogin ($id, $col = 'last_log') {
+		$this->_e->set([$col], [date('Y-m-d H:i:s', time())])->where($id)->res();
+	}
+	
+	public function activeLogin () {
+		if (!authId()) {
+			if ($active = getCookie('authId')) {
+				$this->_log = $this->_e->get()->where($active)->res(1);
+				if ($this->_e->count()) {
+					Session::set('auth', $this->_log);
+					Session::set('authId', $this->_log->id);
+					$this->updateLogin(authId());
+				}
+			}
+		}
 	}
 }

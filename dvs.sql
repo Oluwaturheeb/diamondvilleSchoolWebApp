@@ -1,13 +1,13 @@
--- MySQL dump 10.16  Distrib 10.1.29-MariaDB, for Win32 (AMD64)
+-- MariaDB dump 10.17  Distrib 10.4.6-MariaDB, for Android (armv7-a)
 --
 -- Host: localhost    Database: dvs
 -- ------------------------------------------------------
--- Server version	10.1.29-MariaDB
+-- Server version	10.4.6-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -27,9 +27,9 @@ CREATE TABLE `attendance` (
   `a_id` int(11) NOT NULL,
   `session` varchar(20) DEFAULT NULL,
   `subject` varchar(20) DEFAULT NULL,
-  `sit` int(11) DEFAULT '0',
+  `sit` int(11) DEFAULT 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=224 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=140 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +38,7 @@ CREATE TABLE `attendance` (
 
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
-INSERT INTO `attendance` VALUES (1,2,'First term','Mathematics',0),(2,2,'First term','English',0),(3,2,'First term','Basic studies',0),(4,2,'First term','Basic science',0),(5,2,'First term','Basic technology',0),(6,2,'First term','Home economics',0),(7,2,'First term','Crs',0),(8,2,'First term','Agriculture',0),(9,2,'First term','Computer',0),(10,2,'First term','French',0),(11,2,'First term','Music',0),(23,4,'First term','',0),(35,9,'First term','Mathematics',0),(36,9,'First term','English',0),(37,9,'First term','Basic studies',0),(38,9,'First term','Basic science',0),(39,9,'First term','Basic technology',0),(40,9,'First term','Home economics',0),(41,9,'First term','Crs',0),(42,9,'First term','Agriculture',0),(43,9,'First term','Computer',0),(44,9,'First term','French',0),(45,9,'First term','Music',0),(202,3,'First term','Mathematics',0),(203,3,'First term','English',0),(204,3,'First term','Basic studies',0),(205,3,'First term','Basic science',0),(206,3,'First term','Basic technology',0),(207,3,'First term','Home economics',0),(208,3,'First term','Crs',0),(209,3,'First term','Agriculture',0),(210,3,'First term','Computer',0),(211,3,'First term','French',0),(212,3,'First term','Music',0),(213,7,'First term','Mathematics',0),(214,7,'First term','English',0),(215,7,'First term','Basic studies',0),(216,7,'First term','Basic science',0),(217,7,'First term','Basic technology',0),(218,7,'First term','Home economics',0),(219,7,'First term','Crs',0),(220,7,'First term','Agriculture',0),(221,7,'First term','Computer',0),(222,7,'First term','French',0),(223,7,'First term','Music',0);
+INSERT INTO `attendance` VALUES (116,17,'First term','English',1),(117,17,'First term','Mathematic',1),(118,17,'First term','Basic Science',0),(119,17,'First term','Basic Technology',0),(120,17,'First term','Basic Studies',0),(121,17,'First term','Basic Agriculture',0),(122,18,'First term','English',0),(123,18,'First term','Mathematic',0),(124,18,'First term','Basic Science',0),(125,18,'First term','Basic Technology',0),(126,18,'First term','Basic Studies',0),(127,18,'First term','Basic Agriculture',0),(128,19,'First term','English',0),(129,19,'First term','Mathematic',0),(130,19,'First term','Basic Science',0),(131,19,'First term','Basic Technology',0),(132,19,'First term','Basic Studies',0),(133,19,'First term','Basic Agriculture',0),(134,20,'First term','English',0),(135,20,'First term','Mathematic',0),(136,20,'First term','Basic Science',0),(137,20,'First term','Basic Technology',0),(138,20,'First term','Basic Studies',0),(139,20,'First term','Basic Agriculture',0);
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -52,13 +52,12 @@ DROP TABLE IF EXISTS `auth`;
 CREATE TABLE `auth` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `email` varchar(150) NOT NULL,
-  `password` varchar(64) NOT NULL,
+  `password` varchar(128) NOT NULL,
   `last_log` datetime DEFAULT NULL,
-  `last_pc` datetime DEFAULT CURRENT_TIMESTAMP,
+  `last_pc` datetime DEFAULT current_timestamp(),
   `type` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +66,7 @@ CREATE TABLE `auth` (
 
 LOCK TABLES `auth` WRITE;
 /*!40000 ALTER TABLE `auth` DISABLE KEYS */;
-INSERT INTO `auth` VALUES (1,'admin@gmail.com','076203fd7300b6350c97421f1bd359986e53f36f4634d0dc927345b342cee9bd',NULL,'0000-00-00 00:00:00','1'),(3,'Jj@gmail.com','passpass',NULL,'0000-00-00 00:00:00','3'),(4,'Dara@gmail.com','passpass',NULL,'0000-00-00 00:00:00','2'),(6,'superduper@gmail.com','passpass',NULL,'0000-00-00 00:00:00','2'),(7,'Viru@gmail.com','passpass',NULL,'0000-00-00 00:00:00','3'),(9,'Top@gmail.com','passpass',NULL,'0000-00-00 00:00:00','3');
+INSERT INTO `auth` VALUES (1,'admin@gmail.com','$2y$10$klBjPrW/HyD1opoAdRv8M.Tn6hobvk3H8PNv.KfyzHd7JbovZT2d2','2021-02-01 19:53:32','2021-01-20 18:32:49','1'),(2,'Ayo@gmail.com','$2y$10$Q2UR33a9rfl8a5B6hPk5tufPbzs2ZCkF4uJD2FVW/hXs95CTJ0h1C','2021-01-30 19:37:24','2021-01-04 22:37:14','2'),(3,'Sho@gmail.com','$2y$10$/9CaKUvAccaShz03g4rhqOCjjvB8dhdzxyam4461Y.gzh1ke9INQS',NULL,'2021-01-04 22:26:39','2'),(4,'Olope@gmail.com','$2y$10$uP.6HfsS1JQmA8svssPGe.a4TShkg0tB6cMrQ2Nae/eYG177WC1Q.','2021-02-02 16:54:44','2021-01-04 22:28:49','3'),(5,'Agbaje@gmail.com','$2y$10$2CWkBoRA34rFbt9bIZ3VqOd6l2TnQM7fzj.1VHj59gvVU6EMwsYZa','2021-01-31 18:48:03','2021-01-04 22:30:41','3'),(6,'Igwe@gmail.com','$2y$10$7bVjQNpjkIJr9cJhEQSnFOrLHDt2Vq6Y9vJMq8gtyxpHom2yLx6xi',NULL,'2021-01-04 22:32:11','3'),(7,'Supermail@gmail.com','$2y$10$/xVkFBFPvBHDv89P0sg0TOYMD99WlZWEUKqvyd6.RwTpbcz2b2oZi',NULL,'2021-01-20 18:27:20','3'),(8,'Ona@mail.com','$2y$10$EPQRay2xYKXPvSgoZW8g/eixpzBghCVESxBye1R5DN7ivpXKUKknC',NULL,'2021-01-20 18:29:30','2'),(10,'Ayo@mail.com','$2y$10$DHhT4SjHZRkW4ttaBF9qOu31ktoGHdg13nUXKwBzNVR927wF9pLgy',NULL,'2021-01-24 23:20:18','3'),(11,'Ayo@mail.com','$2y$10$rRVdjsRiqoR8s34VY45/f.hy/Qvgq3AzwKFWhAxU3e4XYvDW0VzRq',NULL,'2021-01-24 23:27:20','3'),(12,'Cool@mailer.com','$2y$10$3/ZBRu1E/A3CXWWmQNP5S.RFpWAAb2Rjov59hSzUMczTJl4XKgkfi',NULL,'2021-01-29 04:38:03','3'),(13,'Hhujm@mail.hui','$2y$10$GOA9U/3WBe5fOVV32OcjzOIGq46Qi5zVeSo35zJ9fsM./NCXpXvme',NULL,'2021-01-29 04:44:04','3'),(14,'Hhujm@mail.hui','$2y$10$fGSZJpJ2vpFrBcaXRl0t9OY7TPnW4sLqqrOxDTs26VAvu0rDDZdAy',NULL,'2021-01-29 04:44:29','3'),(15,'Some@mail.vhj','$2y$10$qIGL6uTVGDuuspuO0S.5aeJqn0v51.nCQ/dQ8eSBVI23203PgYa6e',NULL,'2021-01-29 04:45:50','2'),(16,'Some@mail.vhj','$2y$10$ckkPvg3.IklkKMeNhsk43ee3OZ1IASm1Zk/MkCgPCg7OwZ/8qQAUa',NULL,'2021-01-29 04:46:09','2'),(17,'Imam@mail.com','$2y$10$0oZZtLyf1qM9QTs6FmMV6u/X0r8vJwHTB.7iONvDkHVvIL/xXq4J.','2021-02-01 14:29:17','2021-01-31 06:28:41','3'),(18,'super@gmail.com','$2y$10$9IFw9XajbuktSUZb9JX4ZeSGiOhACafZQbPNR8lPAKUw4ZeNr2QiS',NULL,'2021-01-31 08:25:36','3'),(19,'Tee@mail.com','$2y$10$9h9ogtY9M/x.alNKW23qS.ggAevEy4e9H5xvAh2yJqidX81oho4Vi',NULL,'2021-01-31 10:58:17','3'),(20,'olope@gmail.com','$2y$10$TaWOK6bDl/fZbAZ6VtcKn.qeCH7R6Hh7OkkJH8BBgVr7G4YW6G296',NULL,'2021-02-01 19:56:25','3');
 /*!40000 ALTER TABLE `auth` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -81,9 +80,9 @@ DROP TABLE IF EXISTS `event`;
 CREATE TABLE `event` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` varchar(255) NOT NULL,
-  `content` text,
+  `content` text DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -92,7 +91,7 @@ CREATE TABLE `event` (
 
 LOCK TABLES `event` WRITE;
 /*!40000 ALTER TABLE `event` DISABLE KEYS */;
-INSERT INTO `event` VALUES (11,'session','First term');
+INSERT INTO `event` VALUES (3,'session','First term'),(5,'exams','2021-01-30'),(6,'result','2021-01-30');
 /*!40000 ALTER TABLE `event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -115,7 +114,7 @@ CREATE TABLE `exam` (
   `opt_c` text NOT NULL,
   `opt_d` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -124,8 +123,36 @@ CREATE TABLE `exam` (
 
 LOCK TABLES `exam` WRITE;
 /*!40000 ALTER TABLE `exam` DISABLE KEYS */;
-INSERT INTO `exam` VALUES (11,'Mathematics','Jss 3',NULL,'Multiply 232 by 0___Add 1001 and 1001___divide 2000 by 5','B___C___B','2320___10001___2005','0___2001___2500','2303___2002___800','none___none___none'),(12,'English','Jss 3',NULL,'drug gt ughuij ___hhuoknnvfyuijhg___hhhiijnbgyuiijb','B___A___B','yuuhhhj ggyuh___yuiijggy8u gghh bbh___gyuujvvffgyij','hhjhhguu___ghuijnbvguujjb bhhh vgg___vggyuijjnjky','ggyuijbyui ggyiu___vggggvftyuhfgh___vggguiknbgg','ghhjohbjkiygh___vghhuiknbgyyuh vggh hh___vfggujknbbghkbv');
+INSERT INTO `exam` VALUES (1,'English','Jss 1',NULL,'Hassan____to the market yesterday***EXAM***we ____ 12 in the room yesterday***EXAM***The school is ______ to resume soon***EXAM***What is the official language of Nigeria***EXAM***States in Nigeria are the following except','A***EXAM***A***EXAM***A***EXAM***A***EXAM***A','Went***EXAM***were***EXAM***Going***EXAM***English***EXAM***Niger, Abdijan, Abuja','Go***EXAM***are***EXAM***about***EXAM***Hausa***EXAM***Niger, Lagos, Nasarawa','Do***EXAM***all of the above***EXAM***Ready***EXAM***Igbo***EXAM***Delta, Akwa-Ibom, Kogi','attend***EXAM***none of the above***EXAM***none of the above***EXAM***Yoruba***EXAM***None of the above'),(2,'Mathematic','Jss 1',NULL,'Calcute the division between 100 and 4 and then multiply the result by 2***EXAM***If shukurat is 36years calculate the age of felicia if shukurat is older than her by 12years***EXAM***calculate 25 raised to power 3***EXAM***if a fish eats N1000 food in a month, calculate how much feed will 10 eat in 3month***EXAM***Multiply 5 by 12 by zero','C***EXAM***B***EXAM***A***EXAM***D***EXAM***B','106***EXAM***36***EXAM***15625***EXAM***30100***EXAM***60','102***EXAM***24***EXAM***75***EXAM***30110***EXAM***0','50***EXAM***40***EXAM***1875***EXAM***15000***EXAM***17','104***EXAM***none of the above***EXAM***None of the above***EXAM***30000***EXAM***600'),(3,'English','Jss 3',NULL,'past tense of go is? ___','A','went','gone','go','come');
 /*!40000 ALTER TABLE `exam` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `fees`
+--
+
+DROP TABLE IF EXISTS `fees`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `fees` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `a_id` int(11) NOT NULL,
+  `fees` int(11) DEFAULT NULL,
+  `status` enum('false','true') DEFAULT NULL,
+  `session` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `a_id` (`a_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `fees`
+--
+
+LOCK TABLES `fees` WRITE;
+/*!40000 ALTER TABLE `fees` DISABLE KEYS */;
+INSERT INTO `fees` VALUES (1,4,10000,'false',''),(2,5,10000,'false',''),(3,6,10000,'false',''),(4,7,10000,'false',''),(5,10,15000,'false',''),(6,11,15000,'false',''),(7,13,10000,'false',''),(8,14,10000,'false',''),(9,17,10000,'false','First term'),(10,18,10000,'false','First term'),(11,19,18000,'false','First term'),(12,20,10000,'false','First term');
+/*!40000 ALTER TABLE `fees` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -142,7 +169,7 @@ CREATE TABLE `score` (
   `class` varchar(20) NOT NULL,
   `data` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -151,7 +178,7 @@ CREATE TABLE `score` (
 
 LOCK TABLES `score` WRITE;
 /*!40000 ALTER TABLE `score` DISABLE KEYS */;
-INSERT INTO `score` VALUES (1,3,'First term','Jss 1','[{\"subject\":\"Mathematics\",\"score\":\"3 \\/ 3\"},{\"subject\":\"English\",\"score\":\"1 \\/ 3\"}]'),(2,3,'Second term','Jss 1','[{\"subject\":\"Mathematics\",\"score\":\"2 \\/ 3\"},{\"subject\":\"English\",\"score\":\"2 \\/ 3\"}]'),(3,3,'Third term','Jss 1','[{\"subject\":\"Mathematics\",\"score\":\"1 \\/ 3\"},{\"subject\":\"English\",\"score\":\"1 \\/ 3\"}]'),(4,3,'First term','Jss 2','[{\"subject\":\"Mathematics\",\"score\":\"1 \\/ 3\"},{\"subject\":\"English\",\"score\":\"2 \\/ 3\"}]'),(5,3,'Second term','Jss 2','[{\"subject\":\"Mathematics\",\"score\":\"3 \\/ 3\"},{\"subject\":\"English\",\"score\":\"3 \\/ 3\"}]'),(6,3,'Third term','Jss 2','[{\"subject\":\"Mathematics\",\"score\":\"0 \\/ 3\"},{\"subject\":\"English\",\"score\":\"3 \\/ 3\"}]'),(7,3,'First term','Jss 3','[{\"subject\":\"Mathematics\",\"score\":\"2 \\/ 3\"},{\"subject\":\"English\",\"score\":\"2 \\/ 3\"},{\"subject\":\"Mathematics\",\"score\":\"0 \\/ 3\"},{\"subject\":\"English\",\"score\":\"0 \\/ 3\"}]'),(8,3,'Second term','Jss 3','[{\"subject\":\"Mathematics\",\"score\":\"3 \\/ 3\"},{\"subject\":\"English\",\"score\":\"3 \\/ 3\"}]'),(9,3,'Third term','Jss 3','[{\"subject\":\"Mathematics\",\"score\":\"3 \\/ 3\"},{\"subject\":\"English\",\"score\":\"3 \\/ 3\"}]'),(10,7,'First term','Jss 3','[{\"subject\":\"Mathematics\",\"score\":\"0 \\/ 3\"},{\"subject\":\"English\",\"score\":\"3 \\/ 3\"}]');
+INSERT INTO `score` VALUES (1,17,'First term','Jss 1','[{\"subject\":\"English\",\"score\":\"5 \\/ 5\"},{\"subject\":\"Mathematic\",\"score\":\"2 \\/ 5\"}]');
 /*!40000 ALTER TABLE `score` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -164,24 +191,22 @@ DROP TABLE IF EXISTS `student`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `student` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `a_id` int(11) NOT NULL,
-  `first` varchar(100) NOT NULL,
-  `last` varchar(100) NOT NULL,
+  `a_id` int(11) DEFAULT NULL,
   `pre` varchar(5) DEFAULT NULL,
   `gender` varchar(10) DEFAULT NULL,
   `class` varchar(10) NOT NULL,
   `age` int(11) DEFAULT NULL,
-  `dob` date DEFAULT NULL,
+  `dob` datetime DEFAULT NULL,
   `hadd` varchar(255) DEFAULT NULL,
-  `picture` text,
-  `p_first` varchar(100) NOT NULL,
-  `p_last` varchar(100) NOT NULL,
+  `picture` text DEFAULT NULL,
   `pin` varchar(8) DEFAULT NULL,
   `dept` varchar(20) DEFAULT NULL,
-  `phone` int(11) DEFAULT NULL,
-  `active` int(11) DEFAULT '0',
+  `active` int(11) DEFAULT 0,
+  `phone` varchar(12) DEFAULT NULL,
+  `fullname` varchar(255) NOT NULL,
+  `p_name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -190,7 +215,7 @@ CREATE TABLE `student` (
 
 LOCK TABLES `student` WRITE;
 /*!40000 ALTER TABLE `student` DISABLE KEYS */;
-INSERT INTO `student` VALUES (1,3,'Abdul Lateef','Jimoh','Mr','Male','Jss 1',15,'2005-06-05','no 10, ogunrun','assets/img/student/tlight.jpg','Ade','Ferrari','54369ed5','Junior',NULL,0),(2,7,'Viru','Sahastrabudhe','Mr','Male','Jss 1',17,'2003-03-16','no 15, riverside estate mowe, ogun.','assets/img/student/IMG_20150908_135715.gif','Ade','Ferrari','b77126a3','Junior',NULL,0),(3,9,'Super','Cheetah','Mr','Female','Jss 1',6,'2014-01-06','no 15, riverside estate mowe, ogun.','assets/img/student/FB_IMG_14848986964600995.jpg','Ade','Ferrari','3d540132','Junior',2147483647,0);
+INSERT INTO `student` VALUES (1,17,'Mr','Male','Jss 1',12,'2009-01-01 00:00:00','ogunrun phase 1',NULL,'0408c3d0','Junior',0,'08033333333','Awwal Ibn Imam','Imam'),(2,18,'Mr','Male','Jss 1',15,'2006-01-01 00:00:00','mowe',NULL,'5bde0def','Junior',0,'80000008','super tee','super'),(3,19,'Mr','Male','Jss 3',15,'2006-01-01 00:00:00','mowe',NULL,'5b17a86e','Junior',0,'0803333333','bello toheeb','tee'),(4,20,'Mr','Female','Jss 1',15,'2006-01-01 00:00:00','mowe',NULL,'f74174b6','Junior',0,'08033333333','Idris Olope','olope');
 /*!40000 ALTER TABLE `student` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -207,7 +232,7 @@ CREATE TABLE `subject` (
   `subject` text NOT NULL,
   `class` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -216,7 +241,7 @@ CREATE TABLE `subject` (
 
 LOCK TABLES `subject` WRITE;
 /*!40000 ALTER TABLE `subject` DISABLE KEYS */;
-INSERT INTO `subject` VALUES (1,'Junior','Mathematics, English, Basic studies, Basic science, Basic technology, Home economics, Crs, Agriculture, Computer, French, Music',NULL),(2,'Art','Mathematics, English, Basic studies, Basic science, Basic technology, Home economics, Crs, Agriculture, Computer, French, Music, History','Sss'),(3,'Commercial','Mathematics, English, Basic studies, Basic science, Basic technology, Home economics, Crs, Agriculture, Computer, French, Music, Commerce, Account','Sss'),(4,'Science','Mathematics, English, Basic studies, Basic science, Basic technology, Home economics, Crs, Agriculture, Computer, French, Music, Physics, Chemistry, Further Math','Sss');
+INSERT INTO `subject` VALUES (1,'Junior','English, Mathematic, Basic Science, Basic Technology, Basic Studies, Basic Agriculture','Jss'),(2,'Science','Mathematics, English, Basic studies, Basic science, Basic technology, Home economics, Crs, Agriculture, Computer, French, Music, Physics, Chemistry, Further Math','Sss'),(3,'Commercial','Mathematics, English, Basic studies, Basic science, Basic technology, Home economics, Crs, Agriculture, Computer, French, Music, Commerce, Account','Sss'),(4,'Art','Mathematics, English, Basic studies, Basic science, Basic technology, Home economics, Crs, Agriculture, Computer, French, Music, History','Sss'),(5,'Science','physics, math','Sss'),(6,'Science','physics, math','Sss'),(7,'Science','physics, math','Sss');
 /*!40000 ALTER TABLE `subject` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -231,18 +256,17 @@ CREATE TABLE `teacher` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `a_id` int(11) NOT NULL,
   `pre` varchar(5) NOT NULL,
-  `first` varchar(100) NOT NULL,
-  `last` varchar(100) NOT NULL,
   `class` varchar(255) NOT NULL,
   `age` int(11) DEFAULT NULL,
-  `dob` date DEFAULT NULL,
+  `dob` datetime DEFAULT NULL,
   `hadd` varchar(255) DEFAULT NULL,
-  `picture` text,
+  `picture` text DEFAULT NULL,
   `dept` varchar(20) DEFAULT NULL,
   `subject` text NOT NULL,
-  `phone` varchar(15) DEFAULT NULL,
+  `fullname` varchar(255) NOT NULL,
+  `phone` varchar(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,7 +275,7 @@ CREATE TABLE `teacher` (
 
 LOCK TABLES `teacher` WRITE;
 /*!40000 ALTER TABLE `teacher` DISABLE KEYS */;
-INSERT INTO `teacher` VALUES (1,1,'Mr','Muhammad-Turyeeb','Bello','Administrator',24,'1995-06-18',NULL,'assets/img/def.png',NULL,'Admin',NULL),(2,4,'Miss','Dara','Vincent','Jss 1, Jss 2, Jss 3',29,'1991-02-14','no 15, riverside estate mowe, ogun.','assets/img/teacher/tkode.png',NULL,'Mathematics, English',NULL),(3,6,'Miss','Super','Duper','Sss 1, Sss 2, Sss3',29,'1991-02-14','no 15, riverside estate mowe, ogun.','assets/img/teacher/tlight.png',NULL,'Mathematics, English',NULL);
+INSERT INTO `teacher` VALUES (1,1,'Mr','Dept',NULL,NULL,NULL,'assets/img/teacher/tkode.png','Dept','Administrator','Abdul-Turyeeb Ibn Bello','08121001052'),(2,2,'Miss','Jss 1, Jss 2, Jss 3',30,'1990-12-03 00:00:00','somewhere safe','assets/img/teacher/DiamondVille_323041213_1611870198.png',NULL,'English, Mathematic','Secretary DVS','08161582081'),(3,3,'Mrs','Sss 1, Sss 2, Sss 3',32,'1988-07-11 00:00:00','somewhere safe','assets/img/teacher/IMG-20210119-WA0000.jpg',NULL,'English, Mathematic','Solomon DVS','09032790815'),(5,16,'Mr','Jss 1',25,'1995-06-18 00:00:00','mowe','assets/img/teacher/DiamondVille_233702621_1612104259.png',NULL,'Basic Agriculture','random guh','08063857863');
 /*!40000 ALTER TABLE `teacher` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -264,4 +288,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-08-26 13:34:04
+-- Dump completed on 2021-02-16 10:10:01

@@ -1,4 +1,9 @@
 RewriteEngine On
 
+#PHP FLAG
+php_value auto_prepend_file c:/xampp/htdocs/school_v2/components/app.php
+
+#rewrites
+
 RewriteCond %{REQUEST_URI} !/pages
 RewriteRule (.*) /pages/$1

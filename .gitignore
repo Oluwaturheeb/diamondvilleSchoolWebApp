@@ -1,5 +1,4 @@
-.phpintel
-pages/assets/img
-pages/assets/tmp
-pages/assets/boot
-pages/assets/js/jquery
+.gitignore
+pages
+log
+index.php

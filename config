@@ -1,0 +1,59 @@
+[project]
+name = Diamondville
+lang = en
+region = Africa/Lagos
+
+[db]
+host = localhost
+database = dvs
+usr = root
+pwd = 
+
+[error]
+page = default
+
+[social]
+gAppId = 669264691830-3vb6v0qo2iccrerd4oprc33t4sfr0tg3.apps.googleusercontent.com
+gAppSecret = Z1_A-96X6fwSk3cbElge_PAF
+gRedirect = index
+
+fAppId = 114136507314337
+fAppSecret = c1b3c1624cd9f1294ddd763dc28b18fc
+fToken = EAABnznn5cKEBADEk5pFOaEWZBtBnAl0QiZAzVBT2ZC2XN5sg6MnZBscPJw1A5ZBZAEP8I6Fy8pEXfJ8rVkBM41cFVtd5JItCKZAKKXkIEd2KCCwtBIAIwtUi6Kd9irizv1X5TERuSzga5QxBcedVWCENEBluql2tZCIRBzzoYppQ6SiZBKHnYC90aJNwFhRuxUdh5L8bub6GiYkPZBsLZBpSG2qdQyZCOngZCpsKQvoFUhIseQCTMHYvyIKK5
+fRedirect = index
+
+[mail]
+host = localhost
+port = 25
+user = 10200eee5f8248
+pwd = 28ad881b9b4af0
+enc = tls
+temp = default
+from = test@mail.com
+
+[session]
+name = DVS_sessions_
+domain = Diamondville.com.ng
+tokenExp = 1800
+
+[auth]
+login_attempts = 5
+password_type = default
+last_pc = 30
+
+[state]
+development = true
+
+[cache]
+cache = 
+pages = index, login
+cacheexp = 36
+dbcache = true
+
+[file-upload]
+max-file-upload = 5
+rename-file = 
+mime = []
+
+[log]
+log_request = true

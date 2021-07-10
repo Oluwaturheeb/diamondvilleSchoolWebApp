@@ -1,20 +1,7 @@
 <?php
-require_once "Autoload.php";
-
-if(!Session::check("user"))
-	Redirect::to("/login");
-else
-	$title = "Pay Fees";
-	
-if (Session::get("level") <= 2)
-	Redirect::to("/student");
-
-require_once "inc/header.php";
-
-// calling our classes
-$e = new Easy();
-
-$user = Session::get("user-info");
+authCheck('login');
+callfile('inc/indexHeader', 'DiamondVille');
+$u = auth();
 ?>
 		<div class="col-md-10 mx-auto">
 			<!--<div id="progress" class="my-3">
@@ -22,7 +9,7 @@ $user = Session::get("user-info");
 				<span>2</span>
 			</div>
 			<div class="h3 mt-3">Pay fees</div>
-			<p class="mb-3">Welcome <strong><?php echo $user->pre . ' ' .$user->p_name ?></strong>, thank you for using this channel.</p>
+			<p class="mb-3">Welcome <strong><?php //echo $u->pre, '. ' .$u->p_name ?></strong>, thank you for using this channel.</p>
 			<div class="progress-tab">
 				<div class="item-1">
 					<form method="post" action="fees">
@@ -48,7 +35,7 @@ $user = Session::get("user-info");
 					</form>
 				</div>
 			</div>-->
-			<h3>This feature is currently being implemented</h3>
+			<h3 class="m-5">This feature is currently being implemented!</h3>
 			<a href="/student">Go back</a>
 		</div>
 

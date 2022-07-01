@@ -1,6 +1,0 @@
-RewriteEngine On
-RewriteRule ^req$ index.php
-RewriteRule ^([a-zA-Z_]+)$	$1.php?%{QUERY_STRING} [L]
-RewriteRule ^student/([0-9]+)$	student.php?a_id=$1 [L]
-RewriteRule ^post/([a-zA-Z0-9-_]+)$	post.php?uri=$1 [L]
-RewriteRule ^admin/([a-zA-Z0-9]+)/([a-zA-Z]+)$	admin.php?class=$1&dept=$2 [L]

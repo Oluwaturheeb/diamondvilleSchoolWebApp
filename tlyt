@@ -1,1 +1,4 @@
-<?php require_once 'components/Console.php';
+<?php
+require_once 'vendor/autoload.php';
+use Devtee\Tlyt\Components\Console;
+Console::bootstrapConsole($argv);

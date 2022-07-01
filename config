@@ -2,12 +2,13 @@
 name = Diamondville
 lang = en
 region = Africa/Lagos
+host=http://localhost:8000
 
 [db]
-host = localhost
+host = 127.0.0.1
 database = dvs
 usr = root
-pwd = 
+pwd =
 
 [error]
 page = default
@@ -23,17 +24,18 @@ fToken = EAABnznn5cKEBADEk5pFOaEWZBtBnAl0QiZAzVBT2ZC2XN5sg6MnZBscPJw1A5ZBZAEP8I6
 fRedirect = index
 
 [mail]
-host = localhost
-port = 25
+host = smtp.mailtrap.io
+port = 2525
 user = 10200eee5f8248
 pwd = 28ad881b9b4af0
 enc = tls
-temp = default
 from = test@mail.com
 
+[job]
+retries = 3
+
 [session]
-name = DVS_sessions_
-domain = Diamondville.com.ng
+name = tlyt_sessions_
 tokenExp = 1800
 
 [auth]
@@ -45,15 +47,15 @@ last_pc = 30
 development = true
 
 [cache]
-cache = 
+enabled = false
 pages = index, login
 cacheexp = 36
 dbcache = true
 
 [file-upload]
 max-file-upload = 5
-rename-file = 
+rename-file =
 mime = []
 
 [log]
-log_request = true
+log_request = false
